@@ -88,7 +88,7 @@ class SyncVRouterTenant(SyncStep):
             }
         }
 
-        rest_json = json.dumps(data, indent=4)
+        rest_json = json.dumps(data)
 
         fields = {
             'rest_hostname': fos.rest_hostname,
