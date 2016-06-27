@@ -44,6 +44,23 @@ class SyncVRouterTenant(SyncStep):
         else:
             objs = VRouterTenant.get_deleted_tenant_objects()
 
+        # Check that each is a valid vCPE tenant or instance
+        for vroutertenant in objs:
+            # Do we have a vCPE subscriber_tenant?
+            if vroutertenant.subscriber_tenant:
+                sub = vroutertenant.subscriber_tenant
+                if sub.kind != 'vCPE' or not sub.get_attribute("instance_id"):
+                    objs.remove(vroutertenant)
+            else:
+                # Maybe the VRouterTenant is for an instance
+                instance_id = vroutertenant.get_attribute("tenant_for_instance_id")
+                if not instance_id:
+                    objs.remove(vroutertenant)
+                else:
+                    instance = Instance.objects.filter(id=instance_id)[0]
+                    if not instance.instance_name:
+                        objs.remove(vroutertenant)
+
         return objs
 
     def map_sync_inputs(self, vroutertenant):
@@ -57,21 +74,15 @@ class SyncVRouterTenant(SyncStep):
         # * Look up the instance corresponding to the address
         # * Look up the node running the instance
         # * Get the "location" tag, push to the fabric
-        #
-        # Do we have a vCPE subscriber_tenant?
-        if (vroutertenant.subscriber_tenant):
+        if vroutertenant.subscriber_tenant:
             sub = vroutertenant.subscriber_tenant
-            if (sub.kind == 'vCPE'):
-                instance_id = sub.get_attribute("instance_id")
-                if instance_id:
-                    instance = Instance.objects.filter(id=instance_id)[0]
-                    name = str(sub)
+            instance_id = sub.get_attribute("instance_id")
+            instance = Instance.objects.filter(id=instance_id)[0]
+            name = str(sub)
         else:
-            # Maybe the VRouterTenant is for an instance
             instance_id = vroutertenant.get_attribute("tenant_for_instance_id")
-            if instance_id: 
-                instance = Instance.objects.filter(id=instance_id)[0]
-                name = str(instance)
+            instance = Instance.objects.filter(id=instance_id)[0]
+            name = str(instance)
 
         node = instance.node
         location = self.get_node_tag(node, "location")

@@ -5,3 +5,4 @@
   tasks:
   - name: Add host entry for fabric
     command: curl -sS --user onos:rocks -X POST -HContent-Type:application/json -d '{{ rest_json }}' http://{{ rest_hostname }}:{{ rest_port }}/{{ rest_endpoint }}
+
