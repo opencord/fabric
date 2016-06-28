@@ -9,5 +9,5 @@
       method: POST
       user: onos
       password: rocks
-      body: "{{ '{{' }} lookup('file', '{{ files_dir }}/{{ rest_config.fn }}') {{ '}}' }}"
+      body: "{{ rest_body }}"
       body_format: json

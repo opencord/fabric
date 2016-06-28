@@ -20,16 +20,6 @@ class SyncVRouterTenant(SyncStep):
     requested_interval=30
     playbook='sync_host.yaml'
 
-    def get_files_dir(self):
-        if not hasattr(Config(), "observer_steps_dir"):
-            # make steps_dir mandatory; there's no valid reason for it to not
-            # be defined.
-            raise Exception("observer_steps_dir is not defined in config file")
-
-        step_dir = Config().observer_steps_dir
-
-        return os.path.join(step_dir, "..", "files")
-
     def get_fabric_onos_service(self):
         fos = None
         fs = FabricService.get_service_objects().all()[0]
@@ -73,22 +63,6 @@ class SyncVRouterTenant(SyncStep):
 
         return objs
 
-    def write_config(self, files_dir, name, public_mac, public_ip, location):
-        if not os.path.exists(files_dir):
-            os.makedirs(files_dir)
-
-        # Create JSON
-        data = {
-            "%s/-1"%public_mac : {
-                "basic" : {
-                    "ips" : [ public_ip ],
-                    "location" : location
-                }
-            }
-        }
-
-        file(os.path.join(files_dir, name),"w").write(json.dumps(data,indent=4))
-
     def map_sync_inputs(self, vroutertenant):
 
         fos = self.get_fabric_onos_service()
@@ -113,8 +87,17 @@ class SyncVRouterTenant(SyncStep):
         node = instance.node
         location = self.get_node_tag(node, "location")
 
-        files_dir = self.get_files_dir()
-        self.write_config(files_dir, name, vroutertenant.public_mac, vroutertenant.public_ip, location)
+        # Create JSON
+        data = {
+            "%s/-1" % vroutertenant.public_mac : {
+                "basic" : {
+                    "ips" : [ vroutertenant.public_ip ],
+                    "location" : location
+                }
+            }
+        }
+        # Stupid Ansible... leading space so it doesn't think it's a dict
+        rest_body = " " + json.dumps(data)
 
         # Is it a POST or DELETE?
 
@@ -122,8 +105,7 @@ class SyncVRouterTenant(SyncStep):
             'rest_hostname': fos.rest_hostname,
             'rest_port': fos.rest_port,
             'rest_endpoint': "onos/v1/network/configuration/hosts",
-            'files_dir': files_dir,
-            'rest_config.fn': name,
+            'rest_body': rest_body,
             'ansible_tag': '%s'%name, # name of ansible playbook
         }
         return fields
