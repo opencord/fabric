@@ -9,5 +9,5 @@
       method: POST
       user: onos
       password: rocks
-      body: "{{ rest_body }}"
+      body: '{{ rest_body }}'
       body_format: json
