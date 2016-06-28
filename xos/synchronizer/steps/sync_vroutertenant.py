@@ -87,7 +87,7 @@ class SyncVRouterTenant(SyncStep):
             }
         }
 
-        file(os.path.join(files_dir, name),"w").write(json_dumps(data,indent=4))
+        file(os.path.join(files_dir, name),"w").write(json.dumps(data,indent=4))
 
     def map_sync_inputs(self, vroutertenant):
 
