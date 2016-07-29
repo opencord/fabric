@@ -135,5 +135,19 @@
                 "interfaces" : [ "internet-router" ]
             }
         }
+    },
+    "hosts" : {
+        "00:02:c9:1e:b4:60/None" : {
+            "basic": {
+                "ips": ["10.6.2.1"],
+                "location": "of:0000cc37ab6182d2/5"
+            }
+        },
+        "00:02:c9:1e:b1:20/None" : {
+            "basic": {
+                "ips": ["10.6.1.1"],
+                "location": "of:0000cc37ab6180ca/5"
+            }
+        }
     }
 }
