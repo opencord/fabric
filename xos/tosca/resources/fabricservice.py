@@ -1,13 +1,5 @@
-import os
-import pdb
-import sys
-import tempfile
-sys.path.append("/opt/tosca")
-from translator.toscalib.tosca_template import ToscaTemplate
-
-from services.fabric.models import FabricService
-
 from service import XOSService
+from services.fabric.models import FabricService
 
 class FabricService(XOSService):
     provides = "tosca.nodes.FabricService"
