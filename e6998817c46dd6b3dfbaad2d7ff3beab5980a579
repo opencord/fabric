@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa0f191f_d09bf970",
+        "filename": "config/network-cfg-quickstart.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2017-01-19T18:58:44Z",
+      "side": 0,
+      "message": "Why hosts is no longer necessary when used in CiaB environment?",
+      "range": {
+        "startLine": 74,
+        "startChar": 5,
+        "endLine": 74,
+        "endChar": 10
+      },
+      "revId": "e6998817c46dd6b3dfbaad2d7ff3beab5980a579",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
