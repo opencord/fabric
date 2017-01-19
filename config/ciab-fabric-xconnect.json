@@ -1,0 +1,15 @@
+{
+    "apps": {
+        "org.onosproject.segmentrouting": {
+            "xconnect": {
+                "of:0000cc37ab000011": [
+                    {
+                        "vlan": 222,
+                        "ports": [1, 2],
+                        "name": "test client"
+                    }
+                ]
+            }
+        }
+    }
+}
