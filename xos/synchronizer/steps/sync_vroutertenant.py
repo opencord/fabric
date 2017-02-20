@@ -43,6 +43,8 @@ class SyncVRouterTenant(SyncStep):
         else:
             objs = VRouterTenant.get_deleted_tenant_objects()
 
+        objs = list(objs)
+
         # Check that each is a valid vCPE tenant or instance
         for vroutertenant in objs:
             # Do we have a vCPE subscriber_tenant?
