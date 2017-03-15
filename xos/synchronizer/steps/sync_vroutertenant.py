@@ -24,7 +24,9 @@ class SyncVRouterTenant(SyncStep):
         return fos
 
     def get_node_tag(self, node, tagname):
-        tags = Tag.select_by_content_object(node).filter(name=tagname)
+        tags = Tag.objects.filter(content_type=model_accessor.get_content_type_id(node),
+                                  object_id=node.id,
+                                  name=tagname)
         if tags:
             return tags[0].value
         else:
@@ -40,7 +42,7 @@ class SyncVRouterTenant(SyncStep):
         if (not deleted):
             objs = VRouterTenant.objects.all()
         else:
-            objs = VRouterTenant.deleted_objects.all()
+            objs = super(SyncVRouterTenant, self).fetch_pending(deleted)
 
         objs = list(objs)
 
