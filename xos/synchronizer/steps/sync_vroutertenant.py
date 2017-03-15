@@ -1,16 +1,10 @@
 import os
 import base64
 from collections import defaultdict
-from django.db.models import F, Q
 from xos.config import Config
-from synchronizers.base.syncstep import *
-from core.models import Controller
-from core.models import Image, ControllerImages
+from synchronizers.new_base.syncstep import SyncStep
+from synchronizers.new_base.modelaccessor import *
 from xos.logger import observer_logger as logger
-from synchronizers.base.ansible_helper import *
-from services.vrouter.models import VRouterTenant
-from services.onos.models import ONOSService
-from services.fabric.models import FabricService
 import json
 
 class SyncVRouterTenant(SyncStep):
@@ -21,9 +15,9 @@ class SyncVRouterTenant(SyncStep):
 
     def get_fabric_onos_service(self):
         fos = None
-        fs = FabricService.get_service_objects().all()[0]
+        fs = FabricService.objects.first()
         if fs.subscribed_tenants.exists():
-            app = fs.subscribed_tenants.all()[0]
+            app = fs.subscribed_tenants.first()
             if app.provider_service:
                 ps = app.provider_service
                 fos = ONOSService.get_service_objects().filter(id=ps.id)[0]
@@ -34,14 +28,16 @@ class SyncVRouterTenant(SyncStep):
         return tags[0].value
 
     def fetch_pending(self, deleted):
-        fs = FabricService.get_service_objects().all()[0]
-        if not fs.autoconfig:
+        fs = FabricService.objects.first()
+        if (not fs) or (not fs.autoconfig):
             return None
 
+        # TODO: Why is this a nonstandard synchronizer query?
+
         if (not deleted):
-            objs = VRouterTenant.get_tenant_objects().filter(Q(lazy_blocked=False))
+            objs = VRouterTenant.objects.all()
         else:
-            objs = VRouterTenant.get_deleted_tenant_objects()
+            objs = VRouterTenant.deleted_objects.all()
 
         objs = list(objs)
 
@@ -50,10 +46,16 @@ class SyncVRouterTenant(SyncStep):
             # Do we have a vCPE subscriber_tenant?
             if vroutertenant.subscriber_tenant:
                 sub = vroutertenant.subscriber_tenant
-                if sub.kind != 'vCPE' or not sub.get_attribute("instance_id"):
+                if sub.kind != 'vCPE':
                     objs.remove(vroutertenant)
+                else:
+                    # coerce the subscriber tenant over to the VSGTenant
+                    vsg = VSGTenant.objects.filter(id=sub.id)
+                    if not vsg.instance:
+                        objs.remove(vroutertenant)
             else:
                 # Maybe the VRouterTenant is for an instance
+                # TODO: tenant_for_instance_id needs to be a real database field
                 instance_id = vroutertenant.get_attribute("tenant_for_instance_id")
                 if not instance_id:
                     objs.remove(vroutertenant)
