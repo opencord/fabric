@@ -1,0 +1,7 @@
+name: fabric-synchronizer
+accessor:
+  username: xosadmin@opencord.org
+  password: "@/opt/xos/services/fabric/credentials/xosadmin@opencord.org"
+dependency_graph: "/opt/xos/synchronizers/fabric/model-deps"
+steps_dir: "/opt/xos/synchronizers/fabric/steps"
+sys_dir: "/opt/xos/synchronizers/fabric/sys"
