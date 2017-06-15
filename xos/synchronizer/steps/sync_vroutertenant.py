@@ -32,16 +32,16 @@ class SyncVRouterTenant(SyncStep):
             return None
 
     def fetch_pending(self, deleted):
+        # If fetch_pending is being called for delete, then just execute the standard delete logic.
+        if deleted:
+            return super(SyncVRouterTenant, self).fetch_pending(deleted)
+
         fs = FabricService.objects.first()
         if (not fs) or (not fs.autoconfig):
             return None
 
         # TODO: Why is this a nonstandard synchronizer query?
-
-        if (not deleted):
-            objs = VRouterTenant.objects.all()
-        else:
-            objs = super(SyncVRouterTenant, self).fetch_pending(deleted)
+        objs = VRouterTenant.objects.all()
 
         objs = list(objs)
 
