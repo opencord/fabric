@@ -13,14 +13,16 @@ class SyncVRouterTenant(SyncStep):
     playbook='sync_host.yaml'
 
     def get_fabric_onos_service(self):
-        fos = None
         fs = FabricService.objects.first()
-        if fs.subscribed_tenants.exists():
-            app = fs.subscribed_tenants.first()
-            if app.provider_service:
-                ps = app.provider_service
-                fos = ONOSService.objects.filter(id=ps.id)[0]
-        return fos
+        for link in fs.subscribed_links.all():
+            if link.provider_service_instance:
+                # cast from ServiceInstance to ONOSApp
+                apps = ONOSApp.objects.filter(id=link.provider_service_instance.id)
+                if apps:
+                    # cast from Service to ONOSService
+                    onos = ONOSService.objects.get(id=apps[0].owner.id)
+                    return onos
+        return None
 
     def get_node_tag(self, node, tagname):
         tags = Tag.objects.filter(content_type=model_accessor.get_content_type_id(node),
@@ -47,16 +49,11 @@ class SyncVRouterTenant(SyncStep):
 
         # Check that each is a valid vCPE tenant or instance
         for vroutertenant in objs:
-            # Do we have a vCPE subscriber_tenant?
-            if vroutertenant.subscriber_tenant:
-                sub = vroutertenant.subscriber_tenant
-                if sub.kind != 'vCPE':
+            # TODO: hardcoded service dependency
+            vsg = self.get_vsg_subscriber(vroutertenant)
+            if vsg:
+                if not vsg.instance:
                     objs.remove(vroutertenant)
-                else:
-                    # coerce the subscriber tenant over to the VSGTenant
-                    vsg = VSGTenant.objects.filter(id=sub.id).first()
-                    if not vsg.instance:
-                        objs.remove(vroutertenant)
             else:
                 # Maybe the VRouterTenant is for an instance
                 # TODO: tenant_for_instance_id needs to be a real database field
@@ -70,9 +67,23 @@ class SyncVRouterTenant(SyncStep):
 
         return objs
 
+    def get_vsg_subscriber(self, vroutertenant):
+        links = vroutertenant.provided_links.all()
+        for link in links:
+            if not link.subscriber_service_instance:
+                continue
+            # cast from ServiceInstance to VSGTEnant
+            vsgs = VSGTenant.objects.filter(id=link.subscriber_service_instance.id)
+            if vsgs:
+                return vsgs[0]
+        return None
+
     def map_sync_inputs(self, vroutertenant):
 
         fos = self.get_fabric_onos_service()
+
+        if not fos:
+            raise Exception("No fabric onos service")
 
         name = None
         instance = None
@@ -81,12 +92,12 @@ class SyncVRouterTenant(SyncStep):
         # * Look up the instance corresponding to the address
         # * Look up the node running the instance
         # * Get the "location" tag, push to the fabric
-        if vroutertenant.subscriber_tenant:
-            sub = vroutertenant.subscriber_tenant
-            assert(sub.kind == 'vCPE')
-            vsg = VSGTenant.objects.filter(id=sub.id).first()
+
+        # TODO: hardcoded service dependency
+        vsg = self.get_vsg_subscriber(vroutertenant)
+        if vsg:
             instance = vsg.instance
-            name = str(sub)
+            name = str(vsg)
         else:
             instance_id = vroutertenant.get_attribute("tenant_for_instance_id")
             instance = Instance.objects.filter(id=instance_id)[0]
