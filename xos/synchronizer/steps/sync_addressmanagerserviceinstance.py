@@ -22,22 +22,22 @@ from synchronizers.new_base.modelaccessor import *
 from xos.logger import observer_logger as logger
 import json
 
-class SyncVRouterTenant(SyncStep):
-    provides=[VRouterTenant]
-    observes = VRouterTenant
+class SyncAddressManagerServiceInstance(SyncStep):
+    provides=[AddressManagerServiceInstance]
+    observes = AddressManagerServiceInstance
     requested_interval=30
     playbook='sync_host.yaml'
 
     def get_fabric_onos_service(self):
+        # There will be a ServiceInstanceLink from the FabricService to the Fabric ONOS App
         fs = FabricService.objects.first()
         for link in fs.subscribed_links.all():
             if link.provider_service_instance:
                 # cast from ServiceInstance to ONOSApp
-                apps = ONOSApp.objects.filter(id=link.provider_service_instance.id)
-                if apps:
-                    # cast from Service to ONOSService
-                    onos = ONOSService.objects.get(id=apps[0].owner.id)
-                    return onos
+                service_instance = link.provider_service_instance.leaf_model
+                # cast from Service to ONOSService
+                return service_instance.owner.leaf_model
+
         return None
 
     def get_node_tag(self, node, tagname):
@@ -52,49 +52,48 @@ class SyncVRouterTenant(SyncStep):
     def fetch_pending(self, deleted):
         # If fetch_pending is being called for delete, then just execute the standard delete logic.
         if deleted:
-            return super(SyncVRouterTenant, self).fetch_pending(deleted)
+            return super(SyncAddressManagerServiceInstance, self).fetch_pending(deleted)
 
         fs = FabricService.objects.first()
         if (not fs) or (not fs.autoconfig):
             return None
 
         # TODO: Why is this a nonstandard synchronizer query?
-        objs = VRouterTenant.objects.all()
+        objs = AddressManagerServiceInstance.objects.all()
 
         objs = list(objs)
 
-        # Check that each is a valid vCPE tenant or instance
-        for vroutertenant in objs:
-            # TODO: hardcoded service dependency
-            vsg = self.get_vsg_subscriber(vroutertenant)
-            if vsg:
-                if not vsg.instance:
-                    objs.remove(vroutertenant)
+        # Check that each is a valid VSG tenant or instance
+        for address_si in objs:
+            sub = self.get_subscriber(address_si)
+            if sub:
+                if not sub.instance:
+                    objs.remove(address_si)
             else:
-                # Maybe the VRouterTenant is for an instance
+                # Maybe the Address is for an instance
                 # TODO: tenant_for_instance_id needs to be a real database field
-                instance_id = vroutertenant.get_attribute("tenant_for_instance_id")
+                instance_id = address_si.get_attribute("tenant_for_instance_id")
                 if not instance_id:
-                    objs.remove(vroutertenant)
+                    objs.remove(address_si)
                 else:
                     instance = Instance.objects.filter(id=instance_id)[0]
                     if not instance.instance_name:
-                        objs.remove(vroutertenant)
+                        objs.remove(address_si)
 
         return objs
 
-    def get_vsg_subscriber(self, vroutertenant):
-        links = vroutertenant.provided_links.all()
+    def get_subscriber(self, address_si):
+        links = address_si.provided_links.all()
         for link in links:
             if not link.subscriber_service_instance:
                 continue
-            # cast from ServiceInstance to VSGTEnant
-            vsgs = VSGTenant.objects.filter(id=link.subscriber_service_instance.id)
-            if vsgs:
-                return vsgs[0]
+            # cast from ServiceInstance to VSGTEnant or similar
+            sub = link.subscriber_service_instance.leaf_model
+            # TODO: check here to make sure it's an appropriate type of ServiceInstance ?
+            return sub
         return None
 
-    def map_sync_inputs(self, vroutertenant):
+    def map_sync_inputs(self, address_si):
 
         fos = self.get_fabric_onos_service()
 
@@ -103,19 +102,18 @@ class SyncVRouterTenant(SyncStep):
 
         name = None
         instance = None
-        # VRouterTenant setup is kind of hacky right now, we'll
+        # Address setup is kind of hacky right now, we'll
         # need to revisit.  The idea is:
         # * Look up the instance corresponding to the address
         # * Look up the node running the instance
         # * Get the "location" tag, push to the fabric
 
-        # TODO: hardcoded service dependency
-        vsg = self.get_vsg_subscriber(vroutertenant)
-        if vsg:
-            instance = vsg.instance
-            name = str(vsg)
+        sub = self.get_subscriber(address_si)
+        if sub:
+            instance = sub.instance
+            name = str(sub)
         else:
-            instance_id = vroutertenant.get_attribute("tenant_for_instance_id")
+            instance_id = address_si.get_attribute("tenant_for_instance_id")
             instance = Instance.objects.filter(id=instance_id)[0]
             name = str(instance)
 
@@ -123,13 +121,13 @@ class SyncVRouterTenant(SyncStep):
         location = self.get_node_tag(node, "location")
 
         if not location:
-            raise DeferredException("No location tag for node %s tenant %s -- skipping" % (str(node), str(vroutertenant)))
+            raise DeferredException("No location tag for node %s tenant %s -- skipping" % (str(node), str(address_si)))
 
         # Create JSON
         data = {
-            "%s/-1" % vroutertenant.public_mac : {
+            "%s/-1" % address_si.public_mac : {
                 "basic" : {
-                    "ips" : [ vroutertenant.public_ip ],
+                    "ips" : [ address_si.public_ip ],
                     "location" : location
                 }
             }
