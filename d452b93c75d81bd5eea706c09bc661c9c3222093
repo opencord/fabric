@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a2f8d8d_ab4a4953",
+        "filename": "xos/synchronizer/steps/sync_vroutertenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1000010
+      },
+      "writtenOn": "2017-08-24T22:04:56Z",
+      "side": 1,
+      "message": "We don\u0027t need to use the \"location\" tag any more to configure the fabric?",
+      "range": {
+        "startLine": 143,
+        "startChar": 8,
+        "endLine": 143,
+        "endChar": 19
+      },
+      "revId": "d452b93c75d81bd5eea706c09bc661c9c3222093",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
