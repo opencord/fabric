@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO: This file is deprecated and will be deleted soon
 
 import os
 import base64
