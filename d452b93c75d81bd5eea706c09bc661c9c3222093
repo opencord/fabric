@@ -22,6 +22,30 @@
       "revId": "d452b93c75d81bd5eea706c09bc661c9c3222093",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a2f8d8d_ab6129d5",
+        "filename": "xos/synchronizer/steps/sync_vroutertenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1000005
+      },
+      "writtenOn": "2017-08-24T22:19:06Z",
+      "side": 1,
+      "message": "No, because the fabric can now learn the compute node locations, routing to the IP address of a compute node is enough. This is good because the default config had a hardcoded value of \"of:0000000000000001\" that was pushed for all compute nodes.",
+      "parentUuid": "1a2f8d8d_ab4a4953",
+      "range": {
+        "startLine": 143,
+        "startChar": 8,
+        "endLine": 143,
+        "endChar": 19
+      },
+      "revId": "d452b93c75d81bd5eea706c09bc661c9c3222093",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
