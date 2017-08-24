@@ -13,22 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import os
-import base64
-from collections import defaultdict
+import requests
 from synchronizers.new_base.syncstep import SyncStep, DeferredException
 from synchronizers.new_base.modelaccessor import *
-from xos.logger import observer_logger as logger
-import json
+from xos.logger import Logger, logging
+
+logger = Logger(level=logging.INFO)
+
+DATAPLANE_IP = "dataPlaneIp"
+PREFIX = "prefix"
+NEXT_HOP = "nextHop"
 
 class SyncAddressManagerServiceInstance(SyncStep):
     provides=[AddressManagerServiceInstance]
     observes = AddressManagerServiceInstance
     requested_interval=30
-    playbook='sync_host.yaml'
-
-    def get_fabric_onos_service(self):
+       
+    def get_fabric_onos_service_internal(self):
         # There will be a ServiceInstanceLink from the FabricService to the Fabric ONOS App
         fs = FabricService.objects.first()
         for link in fs.subscribed_links.all():
@@ -39,6 +40,12 @@ class SyncAddressManagerServiceInstance(SyncStep):
                 return service_instance.owner.leaf_model
 
         return None
+
+    def get_fabric_onos_service(self):
+        fos = self.get_fabric_onos_service_internal()
+        if not fos:
+            raise Exception("Fabric ONOS service not found")
+        return fos
 
     def get_node_tag(self, node, tagname):
         tags = Tag.objects.filter(content_type=model_accessor.get_content_type_id(node),
@@ -93,58 +100,67 @@ class SyncAddressManagerServiceInstance(SyncStep):
             return sub
         return None
 
-    def map_sync_inputs(self, address_si):
+    def get_routes_url(self, fos):
+        url = 'http://%s:%s/onos/v1/routes' % (fos.rest_hostname, fos.rest_port)
 
+        logger.info("url: %s" % url)
+        return url
+
+    def sync_record(self, vroutertenant):
         fos = self.get_fabric_onos_service()
 
-        if not fos:
-            raise Exception("No fabric onos service")
+        data = self.map_tenant_to_route(vroutertenant)
 
-        name = None
+        r = self.post_route(fos, data)
+
+        logger.info("status: %s" % r.status_code)
+        logger.info('result: %s' % r.text)
+
+    def delete_record(self, address_si):
+        pass
+        # Disabled for now due to lack of feedback state field
+        # self.delete_route(self.get_fabric_onos_service(),  self.map_tenant_to_route(address_si))
+
+
+    def map_tenant_to_route(self, address_si):
         instance = None
         # Address setup is kind of hacky right now, we'll
         # need to revisit.  The idea is:
         # * Look up the instance corresponding to the address
         # * Look up the node running the instance
-        # * Get the "location" tag, push to the fabric
+        # * Get the "dataPlaneIp" tag, push to the fabric
 
         sub = self.get_subscriber(address_si)
         if sub:
             instance = sub.instance
-            name = str(sub)
         else:
             instance_id = address_si.get_attribute("tenant_for_instance_id")
             instance = Instance.objects.filter(id=instance_id)[0]
-            name = str(instance)
 
         node = instance.node
-        location = self.get_node_tag(node, "location")
+        dataPlaneIp = self.get_node_tag(node, DATAPLANE_IP)
 
-        if not location:
-            raise DeferredException("No location tag for node %s tenant %s -- skipping" % (str(node), str(address_si)))
+        if not dataPlaneIp:
+            raise DeferredException("No IP found for node %s tenant %s -- skipping" % (str(node), str(address_si)))
 
-        # Create JSON
         data = {
-            "%s/-1" % address_si.public_mac : {
-                "basic" : {
-                    "ips" : [ address_si.public_ip ],
-                    "location" : location
-                }
-            }
+            PREFIX : "%s/32" % address_si.public_ip,
+            NEXT_HOP : dataPlaneIp.split('/')[0]
         }
-        # Stupid Ansible... leading space so it doesn't think it's a dict
-        rest_body = " " + json.dumps(data)
 
-        # Is it a POST or DELETE?
+        return data
 
-        fields = {
-            'rest_hostname': fos.rest_hostname,
-            'rest_port': fos.rest_port,
-            'rest_endpoint': "onos/v1/network/configuration/hosts",
-            'rest_body': rest_body,
-            'ansible_tag': '%s'%name, # name of ansible playbook
-        }
-        return fields
+    def delete_route(self, fos, route):
+        url = self.get_routes_url(fos)
 
-    def map_sync_outputs(self, controller_image, res):
-        pass
+        r = requests.delete(url, json=route, auth=(fos.rest_username, fos.rest_password))
+
+        logger.info("status: %s" % r.status_code)
+        logger.info('result: %s' % r.text)
+
+        return r
+
+    def post_route(self, fos, route):
+        url = self.get_routes_url(fos)
+        return requests.post(url, json=route, auth=(fos.rest_username, fos.rest_password))
+
