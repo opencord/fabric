@@ -63,11 +63,10 @@ class SyncAddressManagerServiceInstance(SyncStep):
 
         fs = FabricService.objects.first()
         if (not fs) or (not fs.autoconfig):
-            return None
+            logger.info("Not FabricServer or not autoconfig. Returning []");
+            return []
 
-        # TODO: Why is this a nonstandard synchronizer query?
-        objs = AddressManagerServiceInstance.objects.all()
-
+        objs = super(SyncAddressManagerServiceInstance, self).fetch_pending(deleted)
         objs = list(objs)
 
         # Check that each is a valid VSG tenant or instance
@@ -75,16 +74,19 @@ class SyncAddressManagerServiceInstance(SyncStep):
             sub = self.get_subscriber(address_si)
             if sub:
                 if not sub.instance:
+                    logger.info("Skipping %s because it has no instance" % address_si)
                     objs.remove(address_si)
             else:
                 # Maybe the Address is for an instance
                 # TODO: tenant_for_instance_id needs to be a real database field
                 instance_id = address_si.get_attribute("tenant_for_instance_id")
                 if not instance_id:
+                    logger.info("Skipping %s because it has no tenant_for_instance_id" % address_si)
                     objs.remove(address_si)
                 else:
                     instance = Instance.objects.filter(id=instance_id)[0]
                     if not instance.instance_name:
+                        logger.info("Skipping %s because it has no instance.instance_name" % address_si)
                         objs.remove(address_si)
 
         return objs
@@ -106,15 +108,14 @@ class SyncAddressManagerServiceInstance(SyncStep):
         logger.info("url: %s" % url)
         return url
 
-    def sync_record(self, vroutertenant):
+    def sync_record(self, address_si):
         fos = self.get_fabric_onos_service()
 
-        data = self.map_tenant_to_route(vroutertenant)
+        data = self.map_tenant_to_route(address_si)
 
         r = self.post_route(fos, data)
 
-        logger.info("status: %s" % r.status_code)
-        logger.info('result: %s' % r.text)
+        logger.info("Posted %s: status: %s result '%s'" % (address_si, r.status_code, r.text))
 
     def delete_record(self, address_si):
         pass
