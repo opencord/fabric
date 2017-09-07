@@ -65,9 +65,7 @@ class SyncAddressManagerServiceInstance(SyncStep):
         if (not fs) or (not fs.autoconfig):
             return None
 
-        # TODO: Why is this a nonstandard synchronizer query?
-        objs = AddressManagerServiceInstance.objects.all()
-
+        objs = super(SyncAddressManagerServiceInstance, self).fetch_pending(deleted)
         objs = list(objs)
 
         # Check that each is a valid VSG tenant or instance
