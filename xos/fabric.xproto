@@ -1,7 +1,8 @@
 option app_label = "fabric";
-option verbose_name = "Fabric Service";
-option kind = "fabric";
+option name = "fabric";
 
 message FabricService(Service){
-     optional bool autoconfig = 1 [default = True, help_text="Autoconfigure the fabric", null=False];
+    option verbose_name = "Fabric Service";
+    
+    optional bool autoconfig = 1 [default = True, help_text="Autoconfigure the fabric", null=False];
 }
