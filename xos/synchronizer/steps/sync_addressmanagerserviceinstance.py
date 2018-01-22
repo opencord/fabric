@@ -139,7 +139,7 @@ class SyncAddressManagerServiceInstance(SyncStep):
             instance = Instance.objects.filter(id=instance_id)[0]
 
         node = instance.node
-        dataPlaneIp = self.get_node_tag(node, DATAPLANE_IP)
+        dataPlaneIp = node.dataPlaneIp
 
         if not dataPlaneIp:
             raise DeferredException("No IP found for node %s tenant %s -- skipping" % (str(node), str(address_si)))
