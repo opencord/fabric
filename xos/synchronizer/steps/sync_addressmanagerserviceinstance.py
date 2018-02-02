@@ -103,7 +103,7 @@ class SyncAddressManagerServiceInstance(SyncStep):
         return None
 
     def get_routes_url(self, fos):
-        url = 'http://%s:%s/onos/v1/routes' % (fos.rest_hostname, fos.rest_port)
+        url = 'http://%s:%s/onos/routeservice/routes' % (fos.rest_hostname, fos.rest_port)
 
         logger.info("url: %s" % url)
         return url
