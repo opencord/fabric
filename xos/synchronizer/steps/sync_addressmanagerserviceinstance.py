@@ -73,7 +73,9 @@ class SyncAddressManagerServiceInstance(SyncStep):
         for address_si in objs:
             sub = self.get_subscriber(address_si)
             if sub:
-                if not sub.instance:
+                # TODO: This check is making assumptions about the subscriber service. Consider breaking hardcoded
+                # dependency.
+                if hasattr(sub, "instance") and (not sub.instance):
                     logger.info("Skipping %s because it has no instance" % address_si)
                     objs.remove(address_si)
             else:
@@ -84,8 +86,11 @@ class SyncAddressManagerServiceInstance(SyncStep):
                     logger.info("Skipping %s because it has no tenant_for_instance_id" % address_si)
                     objs.remove(address_si)
                 else:
-                    instance = Instance.objects.filter(id=instance_id)[0]
-                    if not instance.instance_name:
+                    instances = Instance.objects.filter(id=instance_id)
+                    if not instances:
+                        logger.error("Skipping %s because it appears to be linked to a dead instance" % address_si)
+                        objs.remove(address_si)
+                    elif not instances[0].instance_name:
                         logger.info("Skipping %s because it has no instance.instance_name" % address_si)
                         objs.remove(address_si)
 
