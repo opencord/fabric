@@ -73,7 +73,9 @@ class SyncAddressManagerServiceInstance(SyncStep):
         for address_si in objs:
             sub = self.get_subscriber(address_si)
             if sub:
-                if not sub.instance:
+                # TODO: This check is making assumptions about the subscriber service. Consider breaking hardcoded
+                # dependency.
+                if (not hasattr(sub, "instance")) or (not sub.instance):
                     logger.info("Skipping %s because it has no instance" % address_si)
                     objs.remove(address_si)
             else:
@@ -84,8 +86,11 @@ class SyncAddressManagerServiceInstance(SyncStep):
                     logger.info("Skipping %s because it has no tenant_for_instance_id" % address_si)
                     objs.remove(address_si)
                 else:
-                    instance = Instance.objects.filter(id=instance_id)[0]
-                    if not instance.instance_name:
+                    instances = Instance.objects.filter(id=instance_id)
+                    if not instances:
+                        logger.error("Skipping %s because it appears to be linked to a dead instance" % address_si)
+                        objs.remove(address_si)
+                    elif not instances[0].instance_name:
                         logger.info("Skipping %s because it has no instance.instance_name" % address_si)
                         objs.remove(address_si)
 
@@ -112,6 +117,9 @@ class SyncAddressManagerServiceInstance(SyncStep):
         fos = self.get_fabric_onos_service()
 
         data = self.map_tenant_to_route(address_si)
+        if not data:
+            logger.info("map_tenant_to_route returned no data for %s" % address_si)
+            return
 
         r = self.post_route(fos, data)
 
@@ -133,10 +141,18 @@ class SyncAddressManagerServiceInstance(SyncStep):
 
         sub = self.get_subscriber(address_si)
         if sub:
-            instance = sub.instance
+            # TODO: This check is making assumptions about the subscriber service. Consider breaking hardcoded
+            # dependency.
+            if hasattr(sub, "instance"):
+                instance = sub.instance
         else:
             instance_id = address_si.get_attribute("tenant_for_instance_id")
-            instance = Instance.objects.filter(id=instance_id)[0]
+            instances = Instance.objects.filter(id=instance_id)
+            if instances:
+                instance = instances[0]
+
+        if not instance:
+            return None
 
         node = instance.node
         dataPlaneIp = node.dataPlaneIp
