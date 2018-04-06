@@ -16,9 +16,11 @@
 import requests
 from synchronizers.new_base.syncstep import SyncStep, DeferredException
 from synchronizers.new_base.modelaccessor import *
-from xos.logger import Logger, logging
 
-logger = Logger(level=logging.INFO)
+from xosconfig import Config
+from multistructlog import create_logger
+
+log = create_logger(Config().get('logging'))
 
 DATAPLANE_IP = "dataPlaneIp"
 PREFIX = "prefix"
@@ -63,30 +65,35 @@ class SyncAddressManagerServiceInstance(SyncStep):
 
         fs = FabricService.objects.first()
         if (not fs) or (not fs.autoconfig):
-            logger.info("Not FabricServer or not autoconfig. Returning []");
+            log.info("Not FabricServer or not autoconfig. Returning []");
             return []
 
         objs = super(SyncAddressManagerServiceInstance, self).fetch_pending(deleted)
         objs = list(objs)
 
         # Check that each is a valid VSG tenant or instance
-        for address_si in objs:
+        for address_si in objs[:]:
             sub = self.get_subscriber(address_si)
             if sub:
-                if not sub.instance:
-                    logger.info("Skipping %s because it has no instance" % address_si)
+                # TODO: This check is making assumptions about the subscriber service. Consider breaking hardcoded
+                # dependency.
+                if (not hasattr(sub, "instance")) or (not sub.instance):
+                    log.info("Skipping %s because it has no instance" % address_si)
                     objs.remove(address_si)
             else:
                 # Maybe the Address is for an instance
                 # TODO: tenant_for_instance_id needs to be a real database field
                 instance_id = address_si.get_attribute("tenant_for_instance_id")
                 if not instance_id:
-                    logger.info("Skipping %s because it has no tenant_for_instance_id" % address_si)
+                    log.info("Skipping %s because it has no tenant_for_instance_id" % address_si)
                     objs.remove(address_si)
                 else:
-                    instance = Instance.objects.filter(id=instance_id)[0]
-                    if not instance.instance_name:
-                        logger.info("Skipping %s because it has no instance.instance_name" % address_si)
+                    instances = Instance.objects.filter(id=instance_id)
+                    if not instances:
+                        log.error("Skipping %s because it appears to be linked to a dead instance" % address_si)
+                        objs.remove(address_si)
+                    elif not instances[0].instance_name:
+                        log.info("Skipping %s because it has no instance.instance_name" % address_si)
                         objs.remove(address_si)
 
         return objs
@@ -105,17 +112,20 @@ class SyncAddressManagerServiceInstance(SyncStep):
     def get_routes_url(self, fos):
         url = 'http://%s:%s/onos/routeservice/routes' % (fos.rest_hostname, fos.rest_port)
 
-        logger.info("url: %s" % url)
+        log.info("url: %s" % url)
         return url
 
     def sync_record(self, address_si):
         fos = self.get_fabric_onos_service()
 
         data = self.map_tenant_to_route(address_si)
+        if not data:
+            # Raise an exception so the synchronizer does not mark this record as synced
+            raise Exception("map_tenant_to_route returned no data for %s" % address_si)
 
         r = self.post_route(fos, data)
 
-        logger.info("Posted %s: status: %s result '%s'" % (address_si, r.status_code, r.text))
+        log.info("Posted %s: status: %s result '%s'" % (address_si, r.status_code, r.text))
 
     def delete_record(self, address_si):
         pass
@@ -133,10 +143,18 @@ class SyncAddressManagerServiceInstance(SyncStep):
 
         sub = self.get_subscriber(address_si)
         if sub:
-            instance = sub.instance
+            # TODO: This check is making assumptions about the subscriber service. Consider breaking hardcoded
+            # dependency.
+            if hasattr(sub, "instance"):
+                instance = sub.instance
         else:
             instance_id = address_si.get_attribute("tenant_for_instance_id")
-            instance = Instance.objects.filter(id=instance_id)[0]
+            instances = Instance.objects.filter(id=instance_id)
+            if instances:
+                instance = instances[0]
+
+        if not instance:
+            return None
 
         node = instance.node
         dataPlaneIp = node.dataPlaneIp
@@ -156,8 +174,8 @@ class SyncAddressManagerServiceInstance(SyncStep):
 
         r = requests.delete(url, json=route, auth=(fos.rest_username, fos.rest_password))
 
-        logger.info("status: %s" % r.status_code)
-        logger.info('result: %s' % r.text)
+        log.info("status: %s" % r.status_code)
+        log.info('result: %s' % r.text)
 
         return r
 
