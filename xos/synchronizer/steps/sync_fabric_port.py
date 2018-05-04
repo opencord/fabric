@@ -21,29 +21,13 @@ from synchronizers.new_base.modelaccessor import FabricService, SwitchPort
 from xosconfig import Config
 from multistructlog import create_logger
 
+from helpers import Helpers
+
 log = create_logger(Config().get('logging'))
 
 class SyncFabricPort(SyncStep):
     provides = [SwitchPort]
     observes = SwitchPort
-
-    def get_fabric_onos_service_internal(self):
-        # There will be a ServiceInstanceLink from the FabricService to the Fabric ONOS App
-        fs = FabricService.objects.first()
-        for link in fs.subscribed_links.all():
-            if link.provider_service_instance:
-                # Cast from ServiceInstance to ONOSApp
-                service_instance = link.provider_service_instance.leaf_model
-                # Cast from Service to ONOSService
-                return service_instance.owner.leaf_model
-
-        return None
-
-    def get_fabric_onos_service(self):
-        fos = self.get_fabric_onos_service_internal()
-        if not fos:
-            raise Exception("Fabric ONOS service not found")
-        return fos
 
     def sync_record(self, model):
         interfaces = []
@@ -65,7 +49,7 @@ class SyncFabricPort(SyncStep):
           }
         }
 
-        onos = self.get_fabric_onos_service()
+        onos = Helpers.get_onos_fabric_service()
 
         url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
         r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
