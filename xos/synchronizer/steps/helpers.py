@@ -23,7 +23,7 @@ class Helpers():
             return 'http://%s' % url
     @staticmethod
     def get_onos_fabric_service():
-        fabric_service = Service.objects.get(name="fabric") # TODO understand why FabricService.leaf_model is still FabricService and not service
+        # FIXME do not select by name but follow ServiceDependency
+        fabric_service = Service.objects.get(name="fabric")
         onos_fabric_service = fabric_service.subscriber_services[0].leaf_model
-
         return onos_fabric_service
