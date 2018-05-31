@@ -15,7 +15,7 @@
 
 import requests
 from requests.auth import HTTPBasicAuth
-from synchronizers.new_base.syncstep import SyncStep, DeferredException
+from synchronizers.new_base.syncstep import SyncStep, model_accessor
 from synchronizers.new_base.modelaccessor import FabricService, Switch
 
 from xosconfig import Config
@@ -30,6 +30,7 @@ class SyncFabricSwitch(SyncStep):
     observes = Switch
 
     def sync_record(self, model):
+        log.info("Adding switch %s to onos-fabric" % model.name)
         # Send device info to onos-fabric netcfg
         data = {
           "devices": {
@@ -64,5 +65,14 @@ class SyncFabricSwitch(SyncStep):
             except Exception:
                 print r.text
 
-    def delete_record(self, switch):
-        pass
+    def delete_record(self, model):
+        log.info("Removing switch %s from onos-fabric" % model.name)
+        onos = Helpers.get_onos_fabric_service()
+        url = 'http://%s:%s/onos/v1/network/configuration/devices/%s' % (
+        onos.rest_hostname, onos.rest_port, model.ofId)
+
+        r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+
+        if r.status_code != 204:
+            log.error(r.text)
+            raise Exception("Failed to remove switch %s from ONOS" % model.name)

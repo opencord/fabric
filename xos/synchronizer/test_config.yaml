@@ -1,3 +1,4 @@
+
 # Copyright 2017-present Open Networking Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synchronizers.new_base.modelaccessor import Service
-
-class Helpers():
-    @staticmethod
-    def format_url(url):
-        if 'http' in url:
-            return url
-        else:
-            return 'http://%s' % url
-    @staticmethod
-    def get_onos_fabric_service():
-        # FIXME do not select by name but follow ServiceDependency
-        fabric_service = Service.objects.get(name="fabric")
-        onos_fabric_service = fabric_service.subscriber_services[0].leaf_model
-        return onos_fabric_service
+name: fabric
+accessor:
+  username: xosadmin@opencord.org
+  password: "sample"
+  kind: "testframework"
+logging:
+  version: 1
+  handlers:
+    console:
+      class: logging.StreamHandler
+  loggers:
+    'multistructlog':
+      handlers:
+          - console
