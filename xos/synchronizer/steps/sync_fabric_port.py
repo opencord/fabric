@@ -15,7 +15,7 @@
 
 import requests
 from requests.auth import HTTPBasicAuth
-from synchronizers.new_base.syncstep import SyncStep, DeferredException
+from synchronizers.new_base.syncstep import SyncStep, DeferredException, model_accessor
 from synchronizers.new_base.modelaccessor import FabricService, SwitchPort
 
 from xosconfig import Config
@@ -30,6 +30,7 @@ class SyncFabricPort(SyncStep):
     observes = SwitchPort
 
     def sync_record(self, model):
+        log.info("Adding port %s/%s to onos-fabric" % (model.switch.ofId, model.portId))
         interfaces = []
         for intf in model.interfaces.all():
             i = {
@@ -52,6 +53,7 @@ class SyncFabricPort(SyncStep):
         onos = Helpers.get_onos_fabric_service()
 
         url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
+
         r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
 
         if r.status_code != 200:
@@ -63,5 +65,13 @@ class SyncFabricPort(SyncStep):
             except Exception:
                 print r.text
 
-    def delete_record(self, switch):
-        pass
+    def delete_record(self, model):
+        log.info("Removing port %s/%s from onos-fabric" % (model.switch.ofId, model.portId))
+        onos = Helpers.get_onos_fabric_service()
+        url = 'http://%s:%s/onos/v1/network/configuration/ports/%s/%s' % (onos.rest_hostname, onos.rest_port, model.switch.ofId, model.portId)
+
+        r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+
+        if r.status_code != 204:
+            log.error(r.text)
+            raise Exception("Failed to remove port %s from ONOS" % model.name)
