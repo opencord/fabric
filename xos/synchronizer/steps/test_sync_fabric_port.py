@@ -100,6 +100,7 @@ class TestSyncFabricPort(unittest.TestCase):
         self.o = Mock()
         self.o.id = 1
         self.o.tologdict.return_value = {}
+        self.o.host_learning = True
 
 
 
@@ -127,7 +128,10 @@ class TestSyncFabricPort(unittest.TestCase):
                             "name": intf1.name,
                             "ips": [ intf1.ips ]
                         }
-                    ]
+                    ],
+                    "hostLearning": {
+                        "enabled": self.o.host_learning
+                    }
                 }
             }
         }
@@ -153,6 +157,7 @@ class TestSyncFabricPort(unittest.TestCase):
         self.o.interfaces.all.return_value = [intf1]
         self.o.switch.ofId = "of:1234"
         self.o.portId = "1"
+        self.o.host_learning = False
 
         expected_conf = {
             "ports": {
@@ -163,7 +168,10 @@ class TestSyncFabricPort(unittest.TestCase):
                             "ips": [intf1.ips],
                             "vlan-untagged": intf1.vlanUntagged
                         }
-                    ]
+                    ],
+                    "hostLearning": {
+                        "enabled": self.o.host_learning
+                    }
                 }
             }
         }

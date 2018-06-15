@@ -32,7 +32,6 @@ topology_template:
         name: leaf1
         ofId: of:0000000000000001
         routerMac: 00:00:02:01:06:01
-        
 
     # Setup a fabric switch port
     port#port1:
@@ -53,4 +52,15 @@ topology_template:
       requirements:
         - port:
             node: port#port1
+            relationship: tosca.relationships.BelongsToOne
+
+    # Setup a fabric switch port with host_learning disabled
+    port#port2:
+      type: tosca.nodes.SwitchPort
+      properties:
+        portId: 2
+        host_learning: false
+      requirements:
+        - switch:
+            node: switch#leaf1
             relationship: tosca.relationships.BelongsToOne

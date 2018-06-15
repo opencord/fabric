@@ -43,12 +43,17 @@ class SyncFabricPort(SyncStep):
 
         # Send port config to onos-fabric netcfg
         data = {
-          "ports": {
-            "%s/%s" % (model.switch.ofId, model.portId) : {
-              "interfaces" : interfaces
+            "ports": {
+                "%s/%s" % (model.switch.ofId, model.portId) : {
+                    "interfaces": interfaces,
+                    "hostLearning": {
+                        "enabled": model.host_learning
+                    }
+                }
             }
-          }
         }
+
+        log.debug("Port %s/%s data" % (model.switch.ofId, model.portId), data=data)
 
         onos = Helpers.get_onos_fabric_service()
 
@@ -61,9 +66,9 @@ class SyncFabricPort(SyncStep):
             raise Exception("Failed to add port %s into ONOS" % model.name)
         else:
             try:
-                print r.json()
+                log.info("Port %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
             except Exception:
-                print r.text
+                log.info("Port %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
 
     def delete_record(self, model):
         log.info("Removing port %s/%s from onos-fabric" % (model.switch.ofId, model.portId))
