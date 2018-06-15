@@ -14,9 +14,10 @@
 # limitations under the License.
 
 import requests
+import urllib
 from requests.auth import HTTPBasicAuth
 from synchronizers.new_base.syncstep import SyncStep, DeferredException, model_accessor
-from synchronizers.new_base.modelaccessor import FabricService, SwitchPort
+from synchronizers.new_base.modelaccessor import FabricService, SwitchPort, PortInterface
 
 from xosconfig import Config
 from multistructlog import create_logger
@@ -27,9 +28,14 @@ log = create_logger(Config().get('logging'))
 
 class SyncFabricPort(SyncStep):
     provides = [SwitchPort]
-    observes = SwitchPort
+    observes = [SwitchPort, PortInterface]
 
     def sync_record(self, model):
+
+        if model.leaf_model_name == "PortInterface":
+            log.info("Receivent update for PortInterface", name=model, port=model.port.portId)
+            return self.sync_record(model.port)
+
         log.info("Adding port %s/%s to onos-fabric" % (model.switch.ofId, model.portId))
         interfaces = []
         for intf in model.interfaces.all():
@@ -63,20 +69,43 @@ class SyncFabricPort(SyncStep):
 
         if r.status_code != 200:
             log.error(r.text)
-            raise Exception("Failed to add port %s into ONOS" % model.name)
+            raise Exception("Failed to add port  %s/%s into ONOS" % (model.switch.ofId, model.portId))
         else:
             try:
                 log.info("Port %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
             except Exception:
                 log.info("Port %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
 
-    def delete_record(self, model):
-        log.info("Removing port %s/%s from onos-fabric" % (model.switch.ofId, model.portId))
+    def delete_netcfg_item(self, partial_url):
         onos = Helpers.get_onos_fabric_service()
-        url = 'http://%s:%s/onos/v1/network/configuration/ports/%s/%s' % (onos.rest_hostname, onos.rest_port, model.switch.ofId, model.portId)
+        url = 'http://%s:%s/onos/v1/network/configuration/ports/%s' % (onos.rest_hostname, onos.rest_port, partial_url)
 
         r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
 
         if r.status_code != 204:
             log.error(r.text)
-            raise Exception("Failed to remove port %s from ONOS" % model.name)
+            raise Exception("Failed to %s port %s from ONOS" % url)
+
+    def delete_record(self, model):
+
+        if model.leaf_model_name == "PortInterface":
+            # TODO add unit tests
+            log.info("Receivent update for PortInterface", name=model, port=model.port.portId)
+            log.info("Removing port interface %s from port %s/%s in onos-fabric" % (model.name, model.port.switch.ofId, model.port.portId))
+
+            key = "%s/%s" % (model.port.switch.ofId, model.port.portId)
+            key = urllib.quote(key, safe='') + "/interfaces"
+
+            # deleting all the interfaces
+            self.delete_netcfg_item(key)
+
+            # resync the existing interfaces
+            return self.sync_record(model.port)
+
+        log.info("Removing port %s/%s from onos-fabric" % (model.switch.ofId, model.portId))
+
+        key = "%s/%s" % (model.switch.ofId, model.portId)
+        key = urllib.quote(key, safe='')
+
+        # deleting the port
+        self.delete_netcfg_item(key)

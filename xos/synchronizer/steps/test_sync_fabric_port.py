@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import unittest
-
+import urllib
 import functools
 from mock import patch, call, Mock, PropertyMock
 import requests_mock
@@ -189,11 +189,14 @@ class TestSyncFabricPort(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_delete_port(self, m):
-        m.delete("http://onos-fabric:8181/onos/v1/network/configuration/ports/of:1234/1",
-            status_code=204)
 
         self.o.switch.ofId = "of:1234"
         self.o.portId = "1"
+
+        key = urllib.quote("of:1234/1", safe='')
+
+        m.delete("http://onos-fabric:8181/onos/v1/network/configuration/ports/%s" % key,
+            status_code=204)
 
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
