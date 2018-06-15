@@ -43,11 +43,14 @@ class SyncFabricPort(SyncStep):
 
         # Send port config to onos-fabric netcfg
         data = {
-          "ports": {
-            "%s/%s" % (model.switch.ofId, model.portId) : {
-              "interfaces" : interfaces
+            "ports": {
+                "%s/%s" % (model.switch.ofId, model.portId) : {
+                    "interfaces": interfaces,
+                    "hostLearning": {
+                        "enabled": model.host_learning
+                    }
+                }
             }
-          }
         }
 
         onos = Helpers.get_onos_fabric_service()
