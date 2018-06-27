@@ -1,2 +1,5 @@
 .idea
 *.pyc
+
+xos/.coverage
+xos/htmlcov
