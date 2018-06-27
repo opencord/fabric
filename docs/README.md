@@ -52,3 +52,121 @@ topology_template:
             node: port#port1
             relationship: tosca.relationships.BelongsToOne
 ```
+
+## How to attach Compute Nodes to the Fabric
+
+Assuming that you have the above mentioned fabric configuration
+and you want to attach a compute node to `port1`,
+you can use the following TOSCA recipe:
+
+```yaml
+tosca_definitions_version: tosca_simple_yaml_1_0
+description: Set up Fabric service and attach it to ONOS (note that onos-service needs to be loaded)
+imports:
+  - custom_types/node.yaml
+  - custom_types/nodetoswitchport.yaml
+  - custom_types/switch.yaml
+  - custom_types/switchport.yaml
+  - custom_types/deployment.yaml
+  - custom_types/site.yaml
+  - custom_types/sitedeployment.yaml
+
+topology_template:
+  node_templates:
+
+    # nodes
+    node#node1:
+        type: tosca.nodes.Node
+        properties:
+            dataPlaneIntf: fabricbridge
+            dataPlaneIp: 10.6.1.1/24
+            name: Node 1
+        requirements:
+            - site_deployment:
+                node: site_deployment
+                relationship: tosca.relationships.BelongsToOne
+    
+    node#node2:
+        type: tosca.nodes.Node
+        properties:
+            dataPlaneIntf: fabricbridge
+            dataPlaneIp: 10.6.1.2/24
+            name: Node 2
+        requirements:
+            - site_deployment:
+                node: site_deployment
+                relationship: tosca.relationships.BelongsToOne
+
+    # ports (defined in the above recipe)
+    switch#leaf1:
+      type: tosca.nodes.Switch
+      properties:
+        name: leaf1
+        must-exist: true
+    
+    port#port1:
+      type: tosca.nodes.SwitchPort
+      properties:
+        portId: 1
+        must-exist: true
+      requirements:
+        - switch:
+            node: switch#leaf1
+            relationship: tosca.relationships.BelongsToOne
+    
+    port#port2:
+      type: tosca.nodes.SwitchPort
+      properties:
+        portId: 2
+        must-exist: true
+      requirements:
+        - switch:
+            node: switch#leaf1
+            relationship: tosca.relationships.BelongsToOne
+
+    # attaching nodes to ports
+    node1_to_port1:
+        type: tosca.nodes.NodeToSwitchPort
+        requirements:
+            - port:
+                node: port#port1
+                relationship: tosca.relationships.BelongsToOne
+            - node:
+                node: node#node1
+                relationship: tosca.relationships.BelongsToOne
+    
+    node2_to_port2:
+        type: tosca.nodes.NodeToSwitchPort
+        requirements:
+            - port:
+                node: port#port2
+                relationship: tosca.relationships.BelongsToOne
+            - node:
+                node: node#node2
+                relationship: tosca.relationships.BelongsToOne
+
+    # extra setup required by XOS (note that this needs to be customized to your installation)
+    mySite:
+      type: tosca.nodes.Site
+      properties:
+          name: mySite
+          login_base: opencord
+          abbreviated_name: ms
+          site_url: http://opencord.org/
+          hosts_nodes: true
+
+    myDeployment:
+      type: tosca.nodes.Deployment
+      properties:
+        name: myDeployment
+
+    site_deployment:
+      type: tosca.nodes.SiteDeployment
+      requirements:
+        - site:
+            node: mySite
+            relationship: tosca.relationships.BelongsToOne
+        - deployment:
+            node: myDeployment
+            relationship: tosca.relationships.BelongsToOne
+```
