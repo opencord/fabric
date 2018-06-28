@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7b932a5_6d082538",
+        "filename": "docs/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-06-28T17:57:37Z",
+      "side": 1,
+      "message": "should this be a valid hostname?",
+      "range": {
+        "startLine": 83,
+        "startChar": 12,
+        "endLine": 83,
+        "endChar": 24
+      },
+      "revId": "eb3ee17bb2b98443b39fc2c02096d5e15a4769be",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56575c25_0526d39e",
+        "filename": "samples/nodes.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-06-28T17:57:37Z",
+      "side": 1,
+      "message": "Should this be a valid hostname?",
+      "range": {
+        "startLine": 37,
+        "startChar": 12,
+        "endLine": 37,
+        "endChar": 24
+      },
+      "revId": "eb3ee17bb2b98443b39fc2c02096d5e15a4769be",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a7df6e80_c2f45227",
+        "filename": "xos/synchronizer/model_policies/model_policy_compute_nodes.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-06-28T17:57:37Z",
+      "side": 1,
+      "message": "Function names are a little confusing. getLastAddress() implies that an address is being returned, but getSubnetByIp() implies that a subnet is being returned. \n\nMaybe getPortInterfaceAddress() would be clearer ?",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 58
+      },
+      "revId": "eb3ee17bb2b98443b39fc2c02096d5e15a4769be",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
