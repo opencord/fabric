@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a99e38d_73677d2c",
+        "filename": "docs/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2018-06-28T20:56:30Z",
+      "side": 1,
+      "message": "Is this required by VTN?",
+      "parentUuid": "f7b932a5_6d082538",
+      "range": {
+        "startLine": 83,
+        "startChar": 12,
+        "endLine": 83,
+        "endChar": 24
+      },
+      "revId": "eb3ee17bb2b98443b39fc2c02096d5e15a4769be",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56575c25_0526d39e",
         "filename": "samples/nodes.yaml",
         "patchSetId": 4
