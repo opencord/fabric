@@ -45,6 +45,30 @@
       "revId": "71512e75a4d8c0c5a7bb19b6b061269be62e8eb7",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed759a21_339bc045",
+        "filename": "docs/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2018-06-28T00:08:53Z",
+      "side": 1,
+      "message": "This piece of TOSCA is per node. I\u0027ll add another one so that it\u0027s clearer",
+      "parentUuid": "c5624728_ca546b33",
+      "range": {
+        "startLine": 82,
+        "startChar": 25,
+        "endLine": 82,
+        "endChar": 36
+      },
+      "revId": "71512e75a4d8c0c5a7bb19b6b061269be62e8eb7",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
     }
   ]
 }
