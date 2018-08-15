@@ -27,3 +27,4 @@ class Helpers():
         fabric_service = Service.objects.get(name="fabric")
         onos_fabric_service = fabric_service.provider_services[0].leaf_model
         return onos_fabric_service
+
