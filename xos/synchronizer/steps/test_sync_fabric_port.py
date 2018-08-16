@@ -94,7 +94,7 @@ class TestSyncFabricPort(unittest.TestCase):
 
         self.fabric = Mock()
         self.fabric.name = "fabric"
-        self.fabric.subscriber_services = [onos_fabric_base]
+        self.fabric.provider_services = [onos_fabric_base]
 
         # create a mock SwitchPort instance
         self.o = Mock()
