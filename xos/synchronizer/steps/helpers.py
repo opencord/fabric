@@ -25,5 +25,5 @@ class Helpers():
     def get_onos_fabric_service():
         # FIXME do not select by name but follow ServiceDependency
         fabric_service = Service.objects.get(name="fabric")
-        onos_fabric_service = fabric_service.subscriber_services[0].leaf_model
+        onos_fabric_service = fabric_service.provider_services[0].leaf_model
         return onos_fabric_service
