@@ -33,7 +33,7 @@ message PortInterface(XOSBase) {
     required manytoone port->SwitchPort:interfaces = 1 [help_text = "The fabric switch port the interface belongs to", db_index = True, null = False, blank = False];
     required string name = 2 [help_text = "The unique name of the fabric switch port", max_length = 254, null = False, db_index = False, blank = False];
     required string ips = 3 [help_text = "The interface IP address (xxx.yyy.www.zzz/nm)", max_length = 20, null = False, db_index = False, blank = False, unique_with = "port"];
-    optional int32 vlanUntagged = 4 [help_text = "The optional untagged VLAN ID for the interface", max_length = 20, null = True, db_index = False, blank = True];
+    optional int32 vlanUntagged = 4 [help_text = "The optional untagged VLAN ID for the interface", null = True, db_index = False, blank = True];
 }
 
 message NodeToSwitchPort(XOSBase) {
