@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b64aad3_668ef616",
+        "filename": "xos/synchronizer/event_steps/kubernetes_event.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2018-08-17T00:31:10Z",
+      "side": 1,
+      "message": "does it makes sense to read FabricService.objects.all() and iterate on those?",
+      "range": {
+        "startLine": 59,
+        "startChar": 25,
+        "endLine": 59,
+        "endChar": 99
+      },
+      "revId": "ea5cf070d4871e6eb18e25cf2f38c284803ed5a5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
