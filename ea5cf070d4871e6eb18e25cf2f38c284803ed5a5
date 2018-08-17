@@ -22,6 +22,30 @@
       "revId": "ea5cf070d4871e6eb18e25cf2f38c284803ed5a5",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1f570a24_86b58129",
+        "filename": "xos/synchronizer/event_steps/kubernetes_event.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2018-08-17T00:35:22Z",
+      "side": 1,
+      "message": "Good suggestion, I\u0027ll do that.",
+      "parentUuid": "9b64aad3_668ef616",
+      "range": {
+        "startLine": 59,
+        "startChar": 25,
+        "endLine": 59,
+        "endChar": 99
+      },
+      "revId": "ea5cf070d4871e6eb18e25cf2f38c284803ed5a5",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
