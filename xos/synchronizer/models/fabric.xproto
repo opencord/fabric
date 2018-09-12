@@ -32,8 +32,7 @@ message PortInterface(XOSBase) {
 
     required manytoone port->SwitchPort:interfaces = 1 [help_text = "The fabric switch port the interface belongs to", db_index = True, null = False, blank = False];
     required string name = 2 [help_text = "The unique name of the fabric switch port", max_length = 254, null = False, db_index = False, blank = False];
-    required string ips = 3 [help_text = "The interface IP address (xxx.yyy.www.zzz/nm)", max_length = 20, null = False, db_index = False, blank = False, unique_with = "port"];
-    optional int32 vlanUntagged = 4 [help_text = "The optional untagged VLAN ID for the interface", null = True, db_index = False, blank = True];
+    optional int32 vlanUntagged = 3 [help_text = "The optional untagged VLAN ID for the interface", null = True, db_index = False, blank = True];
 }
 
 message NodeToSwitchPort(XOSBase) {
@@ -42,4 +41,12 @@ message NodeToSwitchPort(XOSBase) {
 
     required manytoone port->SwitchPort:node_to_switch_ports = 1 [help_text = "The fabric switch port the node is connected to", db_index = True, null = False, blank = False, tosca_key=True];
     required manytoone node->Node:node_to_switch_ports = 2 [help_text = "The ComputeNode this port is connected to", db_index = True, null = False, blank = False, tosca_key=True];
+}
+
+message IpAddress(XOSBase) {
+    option verbose_name = "IP address associated to an interface";
+
+    required manytoone interface->PortInterface:ips = 1 [help_text = "The port interface the IP address belongs to", db_index = True, null = False, blank = False];
+    required string ip = 2 [help_text = "The unique IP address (either IPv4 or IPv6 / netmask)", max_length = 52, null = False, db_index = False, blank = False, unique_with = "interface"];
+    optional string description = 3 [help_text = "A short description of the IP address", max_length = 254, null = False, db_index = False, blank = False];
 }
