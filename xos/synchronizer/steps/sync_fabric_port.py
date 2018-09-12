@@ -17,7 +17,7 @@ import requests
 import urllib
 from requests.auth import HTTPBasicAuth
 from synchronizers.new_base.syncstep import SyncStep, DeferredException, model_accessor
-from synchronizers.new_base.modelaccessor import FabricService, SwitchPort, PortInterface
+from synchronizers.new_base.modelaccessor import FabricService, SwitchPort, PortInterface, FabricIpAddress
 
 from xosconfig import Config
 from multistructlog import create_logger
@@ -28,20 +28,24 @@ log = create_logger(Config().get('logging'))
 
 class SyncFabricPort(SyncStep):
     provides = [SwitchPort]
-    observes = [SwitchPort, PortInterface]
+    observes = [SwitchPort, PortInterface, FabricIpAddress]
 
     def sync_record(self, model):
 
         if model.leaf_model_name == "PortInterface":
-            log.info("Receivent update for PortInterface", name=model, port=model.port.portId)
+            log.info("Receivent update for PortInterface", port=model.port.portId, interface=model)
             return self.sync_record(model.port)
+
+        if model.leaf_model_name == "FabricIpAddress":
+            log.info("Receivent update for FabricIpAddress", port=model.interface.port.portId, interface=model.interface.name, ip=model.ip)
+            return self.sync_record(model.interface.port)
 
         log.info("Adding port %s/%s to onos-fabric" % (model.switch.ofId, model.portId))
         interfaces = []
         for intf in model.interfaces.all():
             i = {
                 "name" : intf.name,
-                "ips" : [ intf.ips ]
+                "ips" : [ i.ip for i in intf.ips.all() ]
             }
             if intf.vlanUntagged:
                 i["vlan-untagged"] = intf.vlanUntagged
@@ -87,20 +91,20 @@ class SyncFabricPort(SyncStep):
             raise Exception("Failed to %s port %s from ONOS" % url)
 
     def delete_record(self, model):
-
         if model.leaf_model_name == "PortInterface":
-            # TODO add unit tests
-            log.info("Receivent update for PortInterface", name=model, port=model.port.portId)
+            log.info("Received update for PortInterface", port=model.port.portId, interface=model.name)
             log.info("Removing port interface %s from port %s/%s in onos-fabric" % (model.name, model.port.switch.ofId, model.port.portId))
-
-            key = "%s/%s" % (model.port.switch.ofId, model.port.portId)
-            key = urllib.quote(key, safe='') + "/interfaces"
-
-            # deleting all the interfaces
-            self.delete_netcfg_item(key)
 
             # resync the existing interfaces
             return self.sync_record(model.port)
+
+        if model.leaf_model_name == "FabricIpAddress":
+            # TODO add unit tests
+            log.info("Received update for FabricIpAddress", port=model.interface.port.portId, interface=model.interface.name, ip=model.ip)
+            log.info("Removing IP %s from interface %s, on port %s/%s in onos-fabric" % (model.ip, model.interface.name, model.interface.port.switch.ofId, model.interface.port.portId))
+
+            # resync the existing interfaces
+            return self.sync_record(model.interface.port)
 
         log.info("Removing port %s/%s from onos-fabric" % (model.switch.ofId, model.portId))
 

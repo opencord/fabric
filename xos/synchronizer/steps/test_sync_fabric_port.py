@@ -76,10 +76,8 @@ class TestSyncFabricPort(unittest.TestCase):
         for (k, v) in model_accessor.all_model_classes.items():
             globals()[k] = v
 
-
         self.sync_step = SyncFabricPort
         self.sync_step.log = Mock()
-
 
         # mock onos-fabric
         onos_fabric = Mock()
@@ -96,41 +94,55 @@ class TestSyncFabricPort(unittest.TestCase):
         self.fabric.name = "fabric"
         self.fabric.provider_services = [onos_fabric_base]
 
-        # create a mock SwitchPort instance
-        self.o = Mock()
-        self.o.id = 1
-        self.o.tologdict.return_value = {}
-        self.o.host_learning = True
-
-
-
-
     def tearDown(self):
-        self.o = None
         sys.path = self.sys_path_save
 
     @requests_mock.Mocker()
     def test_sync_port(self, m):
+        # IPs
+        ip1 = Mock()
+        ip1.ip = "1.1.1.1/16"
+        ip1.description = "My IPv4 ip"
+        ip2 = Mock()
+        ip2.ip = "2001:0db8:85a3:0000:0000:8a2e:0370:7334/64"
+        ip2.description = "My IPv6 ip"
+        ip3 = Mock()
+        ip3.ip = "2.2.2.2/8"
+        ip3.description = "My other IPv4 ip"
+
         intf1 = Mock()
         intf1.name = "intf1"
-        intf1.ips = "1.1.1.1/16"
         intf1.vlanUntagged = None
+        intf1.ips.all.return_value = [ip1, ip2]
+        intf2 = Mock()
+        intf2.name = "intf2"
+        intf2.vlanUntagged = 42
+        intf2.ips.all.return_value = [ip3]
 
-        self.o.interfaces.all.return_value = [intf1]
-        self.o.switch.ofId = "of:1234"
-        self.o.portId = "1"
+        port = Mock()
+        port.id = 1
+        port.tologdict.return_value = {}
+        port.host_learning = True
+        port.interfaces.all.return_value = [intf1, intf2]
+        port.switch.ofId = "of:1234"
+        port.portId = "1"
 
         expected_conf = {
             "ports": {
-                "%s/%s" % (self.o.switch.ofId, self.o.portId): {
+                "%s/%s" % (port.switch.ofId, port.portId): {
                     "interfaces": [
                         {
                             "name": intf1.name,
-                            "ips": [ intf1.ips ]
+                            "ips": [ ip1.ip, ip2.ip ]
+                        },
+                        {
+                            "name": intf2.name,
+                            "ips": [ip3.ip],
+                            "vlan-untagged": intf2.vlanUntagged
                         }
                     ],
                     "hostLearning": {
-                        "enabled": self.o.host_learning
+                        "enabled": port.host_learning
                     }
                 }
             }
@@ -142,65 +154,83 @@ class TestSyncFabricPort(unittest.TestCase):
 
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
-
-            self.sync_step().sync_record(self.o)
-
-            self.assertTrue(m.called)
-
-    @requests_mock.Mocker()
-    def test_sync_port_with_vlan(self, m):
-        intf1 = Mock()
-        intf1.name = "intf1"
-        intf1.ips = "1.1.1.1/16"
-        intf1.vlanUntagged = 42
-
-        self.o.interfaces.all.return_value = [intf1]
-        self.o.switch.ofId = "of:1234"
-        self.o.portId = "1"
-        self.o.host_learning = False
-
-        expected_conf = {
-            "ports": {
-                "%s/%s" % (self.o.switch.ofId, self.o.portId): {
-                    "interfaces": [
-                        {
-                            "name": intf1.name,
-                            "ips": [intf1.ips],
-                            "vlan-untagged": intf1.vlanUntagged
-                        }
-                    ],
-                    "hostLearning": {
-                        "enabled": self.o.host_learning
-                    }
-                }
-            }
-        }
-
-        m.post("http://onos-fabric:8181/onos/v1/network/configuration/",
-               status_code=200,
-               additional_matcher=functools.partial(match_json, expected_conf))
-
-        with patch.object(Service.objects, "get") as onos_fabric_get:
-            onos_fabric_get.return_value = self.fabric
-
-            self.sync_step().sync_record(self.o)
-
+            self.sync_step().sync_record(port)
             self.assertTrue(m.called)
 
     @requests_mock.Mocker()
     def test_delete_port(self, m):
-
-        self.o.switch.ofId = "of:1234"
-        self.o.portId = "1"
+        # create a mock SwitchPort instance
+        port = Mock()
+        port.id = 1
+        port.tologdict.return_value = {}
+        port.host_learning = True
+        port.switch.ofId = "of:1234"
+        port.portId = "1"
 
         key = urllib.quote("of:1234/1", safe='')
-
         m.delete("http://onos-fabric:8181/onos/v1/network/configuration/ports/%s" % key,
             status_code=204)
 
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
+            self.sync_step().delete_record(port)
+            self.assertTrue(m.called)
 
-            self.sync_step().delete_record(self.o)
+    @requests_mock.Mocker()
+    def test_delete_interface(self, m):
+        ip1 = Mock()
+        ip1.ip = "1.1.1.1/16"
+        ip1.description = "My IPv4 ip"
+        ip2 = Mock()
+        ip2.ip = "2001:0db8:85a3:0000:0000:8a2e:0370:7334/64"
+        ip2.description = "My IPv6 ip"
 
+        # interfaces
+        intf1 = Mock()
+        intf1.name = "intf1"
+        intf1.vlanUntagged = None
+        intf1.ips.all.return_value = [ip1, ip2]
+
+        # bindings
+        # create a mock SwitchPort instance
+        interface_to_remove = Mock()
+        interface_to_remove.id = 1
+        interface_to_remove.tologdict.return_value = {}
+        interface_to_remove.leaf_model_name = "PortInterface"
+        interface_to_remove.port.interfaces.all.return_value = [intf1]
+        interface_to_remove.port.switch.ofId = "of:1234"
+        interface_to_remove.port.portId = "1"
+        interface_to_remove.port.host_learning = True
+
+        m.post("http://onos-fabric:8181/onos/v1/network/configuration/", status_code=200)
+
+        with patch.object(Service.objects, "get") as onos_fabric_get:
+            onos_fabric_get.return_value = self.fabric
+            self.sync_step().delete_record(interface_to_remove)
+            self.assertTrue(m.called)
+
+    @requests_mock.Mocker()
+    def test_delete_ip(self, m):
+        ip1 = Mock()
+        ip1.ip = "1.1.1.1/16"
+        ip1.description = "My IPv4 ip"
+
+        intf1 = Mock()
+        intf1.name = "intf1"
+        intf1.vlanUntagged = None
+        intf1.ips.all.return_value = [ip1]
+
+        ip_to_remove = Mock()
+        ip_to_remove.id = 1
+        ip_to_remove.leaf_model_name = "FabricIpAddress"
+        ip_to_remove.interface.port.interfaces.all.return_value = [intf1] 
+        ip_to_remove.interface.port.switch.ofId = "of:1234"
+        ip_to_remove.interface.port.portId = "1"
+        ip_to_remove.interface.port.host_learning = True
+
+        m.post("http://onos-fabric:8181/onos/v1/network/configuration/", status_code=200)
+
+        with patch.object(Service.objects, "get") as onos_fabric_get:
+            onos_fabric_get.return_value = self.fabric
+            self.sync_step().delete_record(ip_to_remove)
             self.assertTrue(m.called)
