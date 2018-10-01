@@ -10,7 +10,7 @@ message FabricService(Service) {
 message Switch(XOSBase) {
     option verbose_name = "Fabric Switch";
 
-    required string ofId = 2 [help_text = "The unique OpenFlow ID of the fabric switch", max_length = 19, null = False, db_index = False, blank = False];
+    required string ofId = 1 [help_text = "The unique OpenFlow ID of the fabric switch", max_length = 19, null = False, db_index = False, blank = False];
     required string name = 2 [help_text = "The unique name of the fabric switch", max_length = 254, null = False, db_index = False, blank = False];
     required string driver = 3 [help_text = "The driver used by the SDN controller", max_length = 254, null = False, db_index = False, blank = False, default = "ofdpa3"];
     required int32 ipv4NodeSid = 4 [help_text = "The MPLS label used by the switch [17 - 1048576]", null = False, db_index = False, blank = False];
