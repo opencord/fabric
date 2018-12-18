@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d28b8248_c6c2cba1",
+        "filename": "docs/README.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2018-12-18T23:36:07Z",
+      "side": 1,
+      "message": "for configuring",
+      "range": {
+        "startLine": 3,
+        "startChar": 34,
+        "endLine": 3,
+        "endChar": 46
+      },
+      "revId": "d45676580a68ab1395604538196dfb66e908b2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5e3cbdd2_d9c7cf34",
+        "filename": "docs/README.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2018-12-18T23:36:07Z",
+      "side": 1,
+      "message": "May be problematic.",
+      "revId": "d45676580a68ab1395604538196dfb66e908b2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5dc0bbaf_b1c777ce",
+        "filename": "docs/README.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2018-12-18T23:36:07Z",
+      "side": 1,
+      "message": "\"an infrastructure service\" or \"infrastructure\"",
+      "range": {
+        "startLine": 217,
+        "startChar": 22,
+        "endLine": 217,
+        "endChar": 24
+      },
+      "revId": "d45676580a68ab1395604538196dfb66e908b2c3",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
