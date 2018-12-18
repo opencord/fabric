@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5f812dd_90f17bb6",
+        "filename": "docs/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000010
+      },
+      "writtenOn": "2018-12-18T21:42:37Z",
+      "side": 0,
+      "message": "Is it valuable to retain these comments?",
+      "range": {
+        "startLine": 26,
+        "startChar": 23,
+        "endLine": 26,
+        "endChar": 62
+      },
+      "revId": "dc1d411dca3df3259f4aef9411675e8695f21704",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}

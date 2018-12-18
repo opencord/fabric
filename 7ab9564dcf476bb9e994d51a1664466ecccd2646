@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ad2e16ff_2abc3ba9",
+        "filename": "docs/README.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1000010
+      },
+      "writtenOn": "2018-12-18T21:42:37Z",
+      "side": 1,
+      "message": "Maybe say something about, this specific configuration is used in SiaB with an OvS software switch, but it should be easy to adapt it to real hardware.",
+      "range": {
+        "startLine": 42,
+        "startChar": 8,
+        "endLine": 42,
+        "endChar": 14
+      },
+      "revId": "7ab9564dcf476bb9e994d51a1664466ecccd2646",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
