@@ -8,7 +8,7 @@ is configured and ready to go.
 
 ## Models
 
-The fabric service is comprised of the following models:
+The fabric service is composed of the following models:
 
 - `FabricService`. Global service-related parameters such as the name of the service
     - `autoconfig`. Determines whether the fabric is automatically configured.
