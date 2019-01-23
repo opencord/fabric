@@ -28,7 +28,7 @@ topology_template:
       type: tosca.nodes.ONOSService
       properties:
           name: ONOS_Fabric
-          kind: platform
+          kind: data
           rest_hostname: onos-fabric-ui
           rest_port: 8181
 
@@ -36,12 +36,12 @@ topology_template:
       type: tosca.nodes.FabricService
       properties:
         name: fabric
-        kind: platform
+        kind: data
 
     service_dependency#onos-fabric_fabric:
       type: tosca.nodes.ServiceDependency
       properties:
-        connect_method: None
+        connect_method: none
       requirements:
         - subscriber_service:
             node: service#fabric

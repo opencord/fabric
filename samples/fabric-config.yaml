@@ -19,6 +19,7 @@ imports:
   - custom_types/switch.yaml
   - custom_types/switchport.yaml
   - custom_types/portinterface.yaml
+  - custom_types/fabricipaddress.yaml
 description: Configures fabric switches and related ports
 topology_template:
   node_templates:
@@ -47,11 +48,21 @@ topology_template:
     interface#interface1:
       type: tosca.nodes.PortInterface
       properties:
-        ips: 192.168.0.254/24
         name: port1
       requirements:
         - port:
             node: port#port1
+            relationship: tosca.relationships.BelongsToOne
+
+    # Setup a fabric switch port interface
+    ipaddress#ipaddress1:
+      type: tosca.nodes.FabricIpAddress
+      properties:
+        ip: 192.168.0.254/24
+        description: some ip address
+      requirements:
+        - interface:
+            node: interface#interface1
             relationship: tosca.relationships.BelongsToOne
 
     # Setup a fabric switch port with host_learning disabled
