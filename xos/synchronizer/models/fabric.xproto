@@ -3,50 +3,112 @@ option name = "fabric";
 
 message FabricService(Service) {
     option verbose_name = "Fabric Service";
+    option description = "Service that manages and configures fabric switches in ONOS";
     
-    optional bool autoconfig = 1 [default = True, help_text="Autoconfigure the fabric", null=False];
+    optional bool autoconfig = 1 [
+        help_text="Automatically apply addresses from AddressManager service to Fabric",
+        default = True,
+        null = False];
 }
 
 message Switch(XOSBase) {
     option verbose_name = "Fabric Switch";
+    option description = "An individual fabric switch managed by ONOS";
 
-    required string ofId = 1 [help_text = "The unique OpenFlow ID of the fabric switch", max_length = 19,db_index = False];
-    required string name = 2 [help_text = "The unique name of the fabric switch", max_length = 254,db_index = False];
-    required string driver = 3 [help_text = "The driver used by the SDN controller", max_length = 254,db_index = False, default = "ofdpa3"];
-    required int32 ipv4NodeSid = 4 [help_text = "The MPLS label used by the switch [17 - 1048576]",db_index = False];
-    required string ipv4Loopback = 5 [help_text = "Fabric loopback interface", max_length = 17,db_index = False];
-    required string routerMac = 6 [help_text = "MAC address of the fabric switch used for all interfaces", max_length = 17,db_index = False];
-    required bool isEdgeRouter = 7 [default = True, help_text="Whether the fabric switch is a leaf or a spine", null=False];
+    required string ofId = 1 [
+        help_text = "The unique OpenFlow ID of the fabric switch",
+        db_index = False,
+        max_length = 19];
+    required string name = 2 [
+        help_text = "The unique name of the fabric switch",
+        db_index = False,
+        max_length = 254];
+    required string driver = 3 [
+        help_text = "The driver used by the SDN controller",
+        db_index = False,
+        default = "ofdpa3",
+        max_length = 254];
+    required int32 ipv4NodeSid = 4 [
+        help_text = "The MPLS label used by the switch [17 - 1048576]",
+        db_index = False];
+    required string ipv4Loopback = 5 [
+        help_text = "Fabric loopback interface",
+        db_index = False,
+        max_length = 17];
+    required string routerMac = 6 [
+        help_text = "MAC address of the fabric switch used for all interfaces",
+        db_index = False,
+        max_length = 17];
+    required bool isEdgeRouter = 7 [
+        help_text="True if the fabric switch is a leaf, False if it is a spine",
+        default = True,
+        null = False];
 }
 
 message SwitchPort(XOSBase) {
     option verbose_name = "Fabric Switch Port";
+    option description = "A port on a fabric switch";
 
-    required manytoone switch->Switch:ports = 1:1001 [help_text = "The fabric switch the port belongs to", db_index = True, tosca_key=True];
-    required int32 portId = 2 [help_text = "The unique port OpenFlow port ID",db_index = False, tosca_key=True];
-    required bool host_learning = 3 [help_text = "whether or not to enable autodiscovery", default = True,db_index = False];
+    required manytoone switch->Switch:ports = 1:1001 [
+        help_text = "The fabric switch the port belongs to",
+        db_index = True,
+        tosca_key=True];
+    required int32 portId = 2 [
+        help_text = "The unique port OpenFlow port ID",
+        db_index = False,
+        tosca_key=True];
+    required bool host_learning = 3 [
+        help_text = "whether or not to enable autodiscovery",
+        default = True,
+        db_index = False];
 }
 
 message PortInterface(XOSBase) {
     option verbose_name = "Fabric Port Interface";
+    option description = "An interface on a port on a fabric switch";
 
-    required manytoone port->SwitchPort:interfaces = 1:1001 [help_text = "The fabric switch port the interface belongs to", db_index = True];
-    required string name = 2 [help_text = "The unique name of the fabric switch port", max_length = 254,db_index = False];
-    optional int32 vlanUntagged = 3 [help_text = "The optional untagged VLAN ID for the interface", db_index = False];
+    required manytoone port->SwitchPort:interfaces = 1:1001 [
+        help_text = "The fabric switch port the interface belongs to",
+        db_index = True];
+    required string name = 2 [
+        help_text = "The unique name of the fabric switch port",
+        db_index = False,
+        max_length = 254];
+    optional int32 vlanUntagged = 3 [
+        help_text = "The optional untagged VLAN ID for the interface",
+        db_index = False];
 }
 
 message NodeToSwitchPort(XOSBase) {
     option verbose_name = "Node to switch port";
     option description = "Compute Node connection to a Fabric switch port";
 
-    required manytoone port->SwitchPort:node_to_switch_ports = 1:1002 [help_text = "The fabric switch port the node is connected to", db_index = True, tosca_key=True];
-    required manytoone node->Node:node_to_switch_ports = 2:1004 [help_text = "The ComputeNode this port is connected to", db_index = True, tosca_key=True];
+    required manytoone port->SwitchPort:node_to_switch_ports = 1:1002 [
+        help_text = "The fabric switch port the node is connected to",
+        db_index = True,
+        tosca_key=True];
+    required manytoone node->Node:node_to_switch_ports = 2:1004 [
+        help_text = "The ComputeNode this port is connected to",
+        db_index = True,
+        tosca_key=True];
 }
 
 message FabricIpAddress(XOSBase) {
     option verbose_name = "IP address";
+    option description = "An IP address associated with a port on a fabric switch";
 
-    required manytoone interface->PortInterface:ips = 1:1001 [help_text = "The port interface the IP address belongs to", db_index = True];
-    required string ip = 2 [help_text = "The unique IP address (either IPv4 or IPv6 / netmask)", max_length = 52,db_index = False, unique_with = "interface"];
-    optional string description = 3 [help_text = "A short description of the IP address", max_length = 254,db_index = False];
+    required manytoone interface->PortInterface:ips = 1:1001 [
+        help_text = "The port interface the IP address belongs to",
+        db_index = True,
+        tosca_key = True];
+    required string ip = 2 [
+        help_text = "The unique IP address (either IPv4 or IPv6 / netmask)",
+        db_index = False,
+        max_length = 52,
+        tosca_key = True,
+        unique_with = "interface"];
+    optional string description = 3 [
+        help_text = "A short description of the IP address",
+        db_index = False,
+        max_length = 254];
 }
