@@ -42,6 +42,8 @@ def get_models_fn(service_name, xproto_name):
     raise Exception("Unable to find service=%s xproto=%s" % (service_name, xproto_name))
 # END generate model from xproto
 
+# superficial change
+
 class TestKubernetesEvent(unittest.TestCase):
 
     def setUp(self):
