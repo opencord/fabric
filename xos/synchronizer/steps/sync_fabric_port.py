@@ -16,8 +16,8 @@
 import requests
 import urllib
 from requests.auth import HTTPBasicAuth
-from synchronizers.new_base.syncstep import SyncStep, DeferredException, model_accessor
-from synchronizers.new_base.modelaccessor import FabricService, SwitchPort, PortInterface, FabricIpAddress
+from xossynchronizer.steps.syncstep import SyncStep, DeferredException
+from xossynchronizer.modelaccessor import FabricService, SwitchPort, PortInterface, FabricIpAddress, model_accessor
 
 from xosconfig import Config
 from multistructlog import create_logger
@@ -65,7 +65,7 @@ class SyncFabricPort(SyncStep):
 
         log.debug("Port %s/%s data" % (model.switch.ofId, model.portId), data=data)
 
-        onos = Helpers.get_onos_fabric_service()
+        onos = Helpers.get_onos_fabric_service(self.model_accessor)
 
         url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
 
@@ -81,7 +81,7 @@ class SyncFabricPort(SyncStep):
                 log.info("Port %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
 
     def delete_netcfg_item(self, partial_url):
-        onos = Helpers.get_onos_fabric_service()
+        onos = Helpers.get_onos_fabric_service(self.model_accessor)
         url = 'http://%s:%s/onos/v1/network/configuration/ports/%s' % (onos.rest_hostname, onos.rest_port, partial_url)
 
         r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))

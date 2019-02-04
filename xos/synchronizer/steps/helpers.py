@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from synchronizers.new_base.modelaccessor import Service
-
 class Helpers():
     @staticmethod
     def format_url(url):
@@ -22,8 +20,8 @@ class Helpers():
         else:
             return 'http://%s' % url
     @staticmethod
-    def get_onos_fabric_service():
+    def get_onos_fabric_service(model_accessor):
         # FIXME do not select by name but follow ServiceDependency
-        fabric_service = Service.objects.get(name="fabric")
+        fabric_service = model_accessor.Service.objects.get(name="fabric")
         onos_fabric_service = fabric_service.provider_services[0].leaf_model
         return onos_fabric_service

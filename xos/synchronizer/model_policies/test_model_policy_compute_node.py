@@ -21,43 +21,29 @@ from mock import patch, call, Mock, PropertyMock
 import os, sys
 
 test_path=os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-service_dir=os.path.join(test_path, "../../../..")
-xos_dir=os.path.join(test_path, "../../..")
-if not os.path.exists(os.path.join(test_path, "new_base")):
-    xos_dir=os.path.join(test_path, "../../../../../../orchestration/xos/xos")
-    services_dir=os.path.join(xos_dir, "../../xos_services")
-
-# While transitioning from static to dynamic load, the path to find neighboring xproto files has changed. So check
-# both possible locations...
-def get_models_fn(service_name, xproto_name):
-    name = os.path.join(service_name, "xos", xproto_name)
-    if os.path.exists(os.path.join(services_dir, name)):
-        return name
-    else:
-        name = os.path.join(service_name, "xos", "synchronizer", "models", xproto_name)
-        if os.path.exists(os.path.join(services_dir, name)):
-            return name
-    raise Exception("Unable to find service=%s xproto=%s" % (service_name, xproto_name))
 
 class TestComputeNodePolicy(unittest.TestCase):
     def setUp(self):
         global ComputeNodePolicy, MockObjectList
 
         self.sys_path_save = sys.path
-        sys.path.append(xos_dir)
-        sys.path.append(os.path.join(xos_dir, 'synchronizers', 'new_base'))
 
         config = os.path.join(test_path, "../test_config.yaml")
         from xosconfig import Config
         Config.clear()
         Config.init(config, 'synchronizer-config-schema.yaml')
 
-        from synchronizers.new_base.mock_modelaccessor_build import build_mock_modelaccessor
-        build_mock_modelaccessor(xos_dir, services_dir, [get_models_fn("fabric", "fabric.xproto")])
+        from xossynchronizer.mock_modelaccessor_build import mock_modelaccessor_config
+        mock_modelaccessor_config(test_path, [("fabric", "fabric.xproto")])
 
-        import synchronizers.new_base.modelaccessor
+        import xossynchronizer.modelaccessor
+        import mock_modelaccessor
+        reload(mock_modelaccessor) # in case nose2 loaded it in a previous test
+        reload(xossynchronizer.modelaccessor)      # in case nose2 loaded it in a previous test
 
         from model_policy_compute_nodes import ComputeNodePolicy, model_accessor
+
+        self.model_accessor = model_accessor
 
         from mock_modelaccessor import MockObjectList
 
@@ -113,7 +99,6 @@ class TestComputeNodePolicy(unittest.TestCase):
         test_subnet = self.policy.getPortCidrByIp(test_ip)
 
         with patch.object(PortInterface.objects, "get_items") as get_pi:
-
             get_pi.return_value = [mock_pi]
             vlan = self.policy.getVlanByCidr(test_subnet)
 
@@ -138,7 +123,7 @@ class TestComputeNodePolicy(unittest.TestCase):
 
     def test_handle_create(self):
 
-        policy = self.policy()
+        policy = self.policy(model_accessor=self.model_accessor)
         with patch.object(policy, "handle_update") as handle_update:
             policy.handle_create(self.model)
             handle_update.assert_called_with(self.model)
@@ -151,7 +136,7 @@ class TestComputeNodePolicy(unittest.TestCase):
         mock_pi.name = "test_interface"
         mock_pi.ips = str(self.policy.getPortCidrByIp(mock_pi_ip))
 
-        policy = self.policy()
+        policy = self.policy(model_accessor=self.model_accessor)
 
         self.model.port.id = 1
         self.model.node.dataPlaneIntf = "test_interface"
@@ -169,7 +154,7 @@ class TestComputeNodePolicy(unittest.TestCase):
 
     def test_handle_update(self):
 
-        policy = self.policy()
+        policy = self.policy(model_accessor=self.model_accessor)
 
         self.model.port.id = 1
         self.model.node.dataPlaneIntf = "test_interface"
@@ -194,5 +179,6 @@ class TestComputeNodePolicy(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    sys.path.append("../steps")  # so we can import helpers from steps directory
     unittest.main()
 

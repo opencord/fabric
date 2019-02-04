@@ -15,8 +15,8 @@
 
 import requests
 from requests.auth import HTTPBasicAuth
-from synchronizers.new_base.syncstep import SyncStep, model_accessor
-from synchronizers.new_base.modelaccessor import FabricService, Switch
+from xossynchronizer.steps.syncstep import SyncStep
+from xossynchronizer.modelaccessor import FabricService, Switch, model_accessor
 
 from xosconfig import Config
 from multistructlog import create_logger
@@ -51,7 +51,7 @@ class SyncFabricSwitch(SyncStep):
           }
         }
 
-        onos = Helpers.get_onos_fabric_service()
+        onos = Helpers.get_onos_fabric_service(model_accessor=self.model_accessor)
 
         url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
         r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
@@ -67,7 +67,7 @@ class SyncFabricSwitch(SyncStep):
 
     def delete_record(self, model):
         log.info("Removing switch %s from onos-fabric" % model.name)
-        onos = Helpers.get_onos_fabric_service()
+        onos = Helpers.get_onos_fabric_service(model_accessor=self.model_accessor)
         url = 'http://%s:%s/onos/v1/network/configuration/devices/%s' % (
         onos.rest_hostname, onos.rest_port, model.ofId)
 

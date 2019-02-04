@@ -17,9 +17,9 @@
 import json
 import os
 import sys
-from synchronizers.new_base.eventstep import EventStep
-from synchronizers.new_base.modelaccessor import model_accessor
-from synchronizers.new_base.modelaccessor import FabricService, Switch, Service
+from xossynchronizer.event_steps.eventstep import EventStep
+from xossynchronizer.modelaccessor import model_accessor
+from xossynchronizer.modelaccessor import FabricService, Switch, Service
 from xosconfig import Config
 from multistructlog import create_logger
 
