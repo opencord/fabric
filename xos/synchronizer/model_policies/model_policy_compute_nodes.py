@@ -15,8 +15,8 @@
 
 import ipaddress
 import random
-from synchronizers.new_base.modelaccessor import NodeToSwitchPort, PortInterface, model_accessor
-from synchronizers.new_base.policy import Policy
+from xossynchronizer.modelaccessor import NodeToSwitchPort, PortInterface, model_accessor
+from xossynchronizer.model_policies.policy import Policy
 
 from xosconfig import Config
 from multistructlog import create_logger
