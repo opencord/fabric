@@ -15,7 +15,7 @@
 # docker build -t xosproject/fabric-synchronizer:candidate -f Dockerfile.synchronizer .
 
 # xosproject/fabric-synchronizer
-FROM xosproject/xos-synchronizer-base:2.1.50
+FROM xosproject/xos-synchronizer-base:2.2.1
 
 COPY xos/synchronizer /opt/xos/synchronizers/fabric
 COPY VERSION /opt/xos/synchronizers/fabric/
