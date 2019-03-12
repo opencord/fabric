@@ -7,8 +7,7 @@ message FabricService(Service) {
     
     optional bool autoconfig = 1 [
         help_text="Automatically apply addresses from AddressManager service to Fabric",
-        default = True,
-        null = False];
+        default = True];
 }
 
 message Switch(XOSBase) {
@@ -17,32 +16,25 @@ message Switch(XOSBase) {
 
     required string ofId = 1 [
         help_text = "The unique OpenFlow ID of the fabric switch",
-        db_index = False,
         max_length = 19];
     required string name = 2 [
         help_text = "The unique name of the fabric switch",
-        db_index = False,
         max_length = 254];
     required string driver = 3 [
         help_text = "The driver used by the SDN controller",
-        db_index = False,
         default = "ofdpa3",
         max_length = 254];
     required int32 ipv4NodeSid = 4 [
-        help_text = "The MPLS label used by the switch [17 - 1048576]",
-        db_index = False];
+        help_text = "The MPLS label used by the switch [17 - 1048576]"];
     required string ipv4Loopback = 5 [
         help_text = "Fabric loopback interface",
-        db_index = False,
         max_length = 17];
     required string routerMac = 6 [
         help_text = "MAC address of the fabric switch used for all interfaces",
-        db_index = False,
         max_length = 17];
     required bool isEdgeRouter = 7 [
         help_text="True if the fabric switch is a leaf, False if it is a spine",
-        default = True,
-        null = False];
+        default = True];
 }
 
 message SwitchPort(XOSBase) {
@@ -55,12 +47,10 @@ message SwitchPort(XOSBase) {
         tosca_key=True];
     required int32 portId = 2 [
         help_text = "The unique port OpenFlow port ID",
-        db_index = False,
         tosca_key=True];
     required bool host_learning = 3 [
         help_text = "whether or not to enable autodiscovery",
-        default = True,
-        db_index = False];
+        default = True];
 }
 
 message PortInterface(XOSBase) {
@@ -72,11 +62,9 @@ message PortInterface(XOSBase) {
         db_index = True];
     required string name = 2 [
         help_text = "The unique name of the fabric switch port",
-        db_index = False,
         max_length = 254];
     optional int32 vlanUntagged = 3 [
-        help_text = "The optional untagged VLAN ID for the interface",
-        db_index = False];
+        help_text = "The optional untagged VLAN ID for the interface"];
 }
 
 message NodeToSwitchPort(XOSBase) {
@@ -103,12 +91,10 @@ message FabricIpAddress(XOSBase) {
         tosca_key = True];
     required string ip = 2 [
         help_text = "The unique IP address (either IPv4 or IPv6 / netmask)",
-        db_index = False,
         max_length = 52,
         tosca_key = True,
         unique_with = "interface"];
     optional string description = 3 [
         help_text = "A short description of the IP address",
-        db_index = False,
         max_length = 254];
 }
