@@ -51,6 +51,14 @@ message SwitchPort(XOSBase) {
     required bool host_learning = 3 [
         help_text = "whether or not to enable autodiscovery",
         default = True];
+    optional string admin_state = 4 [
+        help_text = "desired administrative state of port",
+        choices = "(('enabled', 'enabled'), ('disabled', 'disabled'))",
+        default = "enabled"];
+    optional string oper_status = 5 [
+        help_text = "operational status of port",
+        choices = "(('enabled', 'enabled'), ('disabled', 'disabled'))",
+        feedback_state = True];
 }
 
 message PortInterface(XOSBase) {

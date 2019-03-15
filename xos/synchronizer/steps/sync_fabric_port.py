@@ -16,8 +16,8 @@
 import requests
 import urllib
 from requests.auth import HTTPBasicAuth
-from xossynchronizer.steps.syncstep import SyncStep, DeferredException
-from xossynchronizer.modelaccessor import FabricService, SwitchPort, PortInterface, FabricIpAddress, model_accessor
+from xossynchronizer.steps.syncstep import SyncStep
+from xossynchronizer.modelaccessor import SwitchPort, PortInterface, FabricIpAddress, model_accessor
 
 from xosconfig import Config
 from multistructlog import create_logger
@@ -26,6 +26,7 @@ from helpers import Helpers
 
 log = create_logger(Config().get('logging'))
 
+
 class SyncFabricPort(SyncStep):
     provides = [SwitchPort]
     observes = [SwitchPort, PortInterface, FabricIpAddress]
@@ -33,19 +34,22 @@ class SyncFabricPort(SyncStep):
     def sync_record(self, model):
 
         if model.leaf_model_name == "PortInterface":
-            log.info("Receivent update for PortInterface", port=model.port.portId, interface=model)
+            log.info("Received update for PortInterface", port=model.port.portId, interface=model)
             return self.sync_record(model.port)
 
         if model.leaf_model_name == "FabricIpAddress":
-            log.info("Receivent update for FabricIpAddress", port=model.interface.port.portId, interface=model.interface.name, ip=model.ip)
+            log.info("Received update for FabricIpAddress",
+                     port=model.interface.port.portId,
+                     interface=model.interface.name,
+                     ip=model.ip)
             return self.sync_record(model.interface.port)
 
         log.info("Adding port %s/%s to onos-fabric" % (model.switch.ofId, model.portId))
         interfaces = []
         for intf in model.interfaces.all():
             i = {
-                "name" : intf.name,
-                "ips" : [ i.ip for i in intf.ips.all() ]
+                "name": intf.name,
+                "ips": [i.ip for i in intf.ips.all()]
             }
             if intf.vlanUntagged:
                 i["vlan-untagged"] = intf.vlanUntagged
@@ -54,7 +58,7 @@ class SyncFabricPort(SyncStep):
         # Send port config to onos-fabric netcfg
         data = {
             "ports": {
-                "%s/%s" % (model.switch.ofId, model.portId) : {
+                "%s/%s" % (model.switch.ofId, model.portId): {
                     "interfaces": interfaces,
                     "hostLearning": {
                         "enabled": model.host_learning
@@ -79,6 +83,26 @@ class SyncFabricPort(SyncStep):
                 log.info("Port %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
             except Exception:
                 log.info("Port %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
+
+        # Now set the port's administrative state.
+        # TODO(smbaker): See if netcfg allows us to specify the portstate instead of using a separate REST call
+
+        url = 'http://%s:%s/onos/v1/devices/%s/portstate/%s' % (onos.rest_hostname,
+                                                                onos.rest_port,
+                                                                model.switch.ofId,
+                                                                model.portId)
+        data = {"enabled": True if model.admin_state == "enabled" else False}
+        log.debug("Sending portstate %s to %s/%s" % (data, model.switch.ofId, model.portId))
+        r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+
+        if r.status_code != 200:
+            log.error(r.text)
+            raise Exception("Failed to set portstate  %s/%s into ONOS" % (model.switch.ofId, model.portId))
+        else:
+            try:
+                log.info("Portstate %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
+            except Exception:
+                log.info("Portstate %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
 
     def delete_netcfg_item(self, partial_url):
         onos = Helpers.get_onos_fabric_service(self.model_accessor)

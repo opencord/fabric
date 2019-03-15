@@ -15,17 +15,17 @@
 import unittest
 import urllib
 import functools
-from mock import patch, call, Mock, PropertyMock
+from mock import patch, Mock
 import requests_mock
-import multistructlog
-from multistructlog import create_logger
 
-import os, sys
+import os
+import sys
 
-test_path=os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+test_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
 
 def match_json(desired, req):
-    if desired!=req.json():
+    if desired != req.json():
         raise Exception("Got request %s, but body is not matching" % req.url)
         return False
     return True
@@ -49,8 +49,8 @@ class TestSyncFabricPort(unittest.TestCase):
 
         import xossynchronizer.modelaccessor
         import mock_modelaccessor
-        reload(mock_modelaccessor) # in case nose2 loaded it in a previous test
-        reload(xossynchronizer.modelaccessor)      # in case nose2 loaded it in a previous test
+        reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
+        reload(xossynchronizer.modelaccessor)  # in case nose2 loaded it in a previous test
 
         from xossynchronizer.modelaccessor import model_accessor
         self.model_accessor = model_accessor
@@ -111,6 +111,7 @@ class TestSyncFabricPort(unittest.TestCase):
         port.interfaces.all.return_value = [intf1, intf2]
         port.switch.ofId = "of:1234"
         port.portId = "1"
+        port.admin_state = "enabled"
 
         expected_conf = {
             "ports": {
@@ -118,7 +119,7 @@ class TestSyncFabricPort(unittest.TestCase):
                     "interfaces": [
                         {
                             "name": intf1.name,
-                            "ips": [ ip1.ip, ip2.ip ]
+                            "ips": [ip1.ip, ip2.ip]
                         },
                         {
                             "name": intf2.name,
@@ -137,6 +138,79 @@ class TestSyncFabricPort(unittest.TestCase):
                status_code=200,
                additional_matcher=functools.partial(match_json, expected_conf))
 
+        expected_activation = {"enabled": True}
+
+        m.post("http://onos-fabric:8181/onos/v1/devices/%s/portstate/%s" % (port.switch.ofId, port.portId),
+               status_code=200,
+               additional_matcher=functools.partial(match_json, expected_activation))
+
+        with patch.object(Service.objects, "get") as onos_fabric_get:
+            onos_fabric_get.return_value = self.fabric
+            self.sync_step(model_accessor=self.model_accessor).sync_record(port)
+            self.assertTrue(m.called)
+
+    @requests_mock.Mocker()
+    def test_sync_port_disabled(self, m):
+        # IPs
+        ip1 = Mock()
+        ip1.ip = "1.1.1.1/16"
+        ip1.description = "My IPv4 ip"
+        ip2 = Mock()
+        ip2.ip = "2001:0db8:85a3:0000:0000:8a2e:0370:7334/64"
+        ip2.description = "My IPv6 ip"
+        ip3 = Mock()
+        ip3.ip = "2.2.2.2/8"
+        ip3.description = "My other IPv4 ip"
+
+        intf1 = Mock()
+        intf1.name = "intf1"
+        intf1.vlanUntagged = None
+        intf1.ips.all.return_value = [ip1, ip2]
+        intf2 = Mock()
+        intf2.name = "intf2"
+        intf2.vlanUntagged = 42
+        intf2.ips.all.return_value = [ip3]
+
+        port = Mock()
+        port.id = 1
+        port.tologdict.return_value = {}
+        port.host_learning = True
+        port.interfaces.all.return_value = [intf1, intf2]
+        port.switch.ofId = "of:1234"
+        port.portId = "1"
+        port.admin_state = "disabled"
+
+        expected_conf = {
+            "ports": {
+                "%s/%s" % (port.switch.ofId, port.portId): {
+                    "interfaces": [
+                        {
+                            "name": intf1.name,
+                            "ips": [ip1.ip, ip2.ip]
+                        },
+                        {
+                            "name": intf2.name,
+                            "ips": [ip3.ip],
+                            "vlan-untagged": intf2.vlanUntagged
+                        }
+                    ],
+                    "hostLearning": {
+                        "enabled": port.host_learning
+                    }
+                }
+            }
+        }
+
+        m.post("http://onos-fabric:8181/onos/v1/network/configuration/",
+               status_code=200,
+               additional_matcher=functools.partial(match_json, expected_conf))
+
+        expected_activation = {"enabled": False}
+
+        m.post("http://onos-fabric:8181/onos/v1/devices/%s/portstate/%s" % (port.switch.ofId, port.portId),
+               status_code=200,
+               additional_matcher=functools.partial(match_json, expected_activation))
+
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
             self.sync_step(model_accessor=self.model_accessor).sync_record(port)
@@ -154,7 +228,7 @@ class TestSyncFabricPort(unittest.TestCase):
 
         key = urllib.quote("of:1234/1", safe='')
         m.delete("http://onos-fabric:8181/onos/v1/network/configuration/ports/%s" % key,
-            status_code=204)
+                 status_code=204)
 
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
@@ -189,6 +263,10 @@ class TestSyncFabricPort(unittest.TestCase):
 
         m.post("http://onos-fabric:8181/onos/v1/network/configuration/", status_code=200)
 
+        m.post("http://onos-fabric:8181/onos/v1/devices/%s/portstate/%s" % (interface_to_remove.port.switch.ofId,
+                                                                            interface_to_remove.port.portId),
+               status_code=200)
+
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
             self.sync_step(model_accessor=self.model_accessor).delete_record(interface_to_remove)
@@ -208,17 +286,22 @@ class TestSyncFabricPort(unittest.TestCase):
         ip_to_remove = Mock()
         ip_to_remove.id = 1
         ip_to_remove.leaf_model_name = "FabricIpAddress"
-        ip_to_remove.interface.port.interfaces.all.return_value = [intf1] 
+        ip_to_remove.interface.port.interfaces.all.return_value = [intf1]
         ip_to_remove.interface.port.switch.ofId = "of:1234"
         ip_to_remove.interface.port.portId = "1"
         ip_to_remove.interface.port.host_learning = True
 
         m.post("http://onos-fabric:8181/onos/v1/network/configuration/", status_code=200)
 
+        m.post("http://onos-fabric:8181/onos/v1/devices/%s/portstate/%s" % (ip_to_remove.interface.port.switch.ofId,
+                                                                            ip_to_remove.interface.port.portId),
+               status_code=200)
+
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
             self.sync_step(model_accessor=self.model_accessor).delete_record(ip_to_remove)
             self.assertTrue(m.called)
+
 
 if __name__ == '__main__':
     unittest.main()
