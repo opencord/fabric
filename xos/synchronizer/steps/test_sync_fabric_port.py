@@ -137,6 +137,9 @@ class TestSyncFabricPort(unittest.TestCase):
                status_code=200,
                additional_matcher=functools.partial(match_json, expected_conf))
 
+        m.post("http://onos-fabric:8181/onos/v1/devices/%s/portstate/%s" % (port.switch.ofId, port.portId),
+               status_code=200)
+
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
             self.sync_step(model_accessor=self.model_accessor).sync_record(port)
@@ -189,6 +192,10 @@ class TestSyncFabricPort(unittest.TestCase):
 
         m.post("http://onos-fabric:8181/onos/v1/network/configuration/", status_code=200)
 
+        m.post("http://onos-fabric:8181/onos/v1/devices/%s/portstate/%s" % (interface_to_remove.port.switch.ofId,
+                                                                            interface_to_remove.port.portId),
+               status_code=200)
+
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
             self.sync_step(model_accessor=self.model_accessor).delete_record(interface_to_remove)
@@ -214,6 +221,10 @@ class TestSyncFabricPort(unittest.TestCase):
         ip_to_remove.interface.port.host_learning = True
 
         m.post("http://onos-fabric:8181/onos/v1/network/configuration/", status_code=200)
+
+        m.post("http://onos-fabric:8181/onos/v1/devices/%s/portstate/%s" % (ip_to_remove.interface.port.switch.ofId,
+                                                                            ip_to_remove.interface.port.portId),
+               status_code=200)
 
         with patch.object(Service.objects, "get") as onos_fabric_get:
             onos_fabric_get.return_value = self.fabric
