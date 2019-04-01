@@ -30,6 +30,7 @@ def match_json(desired, req):
         return False
     return True
 
+
 class TestSyncFabricPort(unittest.TestCase):
 
     def setUp(self):

@@ -15,20 +15,21 @@
 import unittest
 
 import functools
-from mock import patch, call, Mock, PropertyMock
+from mock import patch, Mock
 import requests_mock
-import multistructlog
-from multistructlog import create_logger
 
-import os, sys
+import os
+import sys
 
-test_path=os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+test_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
 
 def match_json(desired, req):
-    if desired!=req.json():
+    if desired != req.json():
         raise Exception("Got request %s, but body is not matching" % req.url)
         return False
     return True
+
 
 class TestSyncFabricSwitch(unittest.TestCase):
 
@@ -49,7 +50,7 @@ class TestSyncFabricSwitch(unittest.TestCase):
 
         import xossynchronizer.modelaccessor
         import mock_modelaccessor
-        reload(mock_modelaccessor) # in case nose2 loaded it in a previous test
+        reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
         reload(xossynchronizer.modelaccessor)      # in case nose2 loaded it in a previous test
 
         from xossynchronizer.modelaccessor import model_accessor
@@ -61,10 +62,8 @@ class TestSyncFabricSwitch(unittest.TestCase):
         for (k, v) in model_accessor.all_model_classes.items():
             globals()[k] = v
 
-
         self.sync_step = SyncFabricSwitch
         self.sync_step.log = Mock()
-
 
         # mock onos-fabric
         onos_fabric = Mock()
@@ -105,17 +104,17 @@ class TestSyncFabricSwitch(unittest.TestCase):
             "devices": {
                 self.o.ofId: {
                     "basic": {
-                    "name": self.o.name,
-                    "driver": self.o.driver
-                },
-                "segmentrouting" : {
-                    "name" : self.o.name,
-                    "ipv4NodeSid" : self.o.ipv4NodeSid,
-                    "ipv4Loopback" : self.o.ipv4Loopback,
-                    "routerMac" : self.o.routerMac,
-                    "isEdgeRouter" : self.o.isEdgeRouter,
-                    "adjacencySids" : []
-              }
+                        "name": self.o.name,
+                        "driver": self.o.driver
+                    },
+                    "segmentrouting": {
+                        "name": self.o.name,
+                        "ipv4NodeSid": self.o.ipv4NodeSid,
+                        "ipv4Loopback": self.o.ipv4Loopback,
+                        "routerMac": self.o.routerMac,
+                        "isEdgeRouter": self.o.isEdgeRouter,
+                        "adjacencySids": []
+                    }
                 }
             }
         }
@@ -134,7 +133,7 @@ class TestSyncFabricSwitch(unittest.TestCase):
     @requests_mock.Mocker()
     def test_delete_switch(self, m):
         m.delete("http://onos-fabric:8181/onos/v1/network/configuration/devices/of:1234",
-            status_code=204)
+                 status_code=204)
 
         self.o.ofId = "of:1234"
 
@@ -144,6 +143,7 @@ class TestSyncFabricSwitch(unittest.TestCase):
             self.sync_step(model_accessor=self.model_accessor).delete_record(self.o)
 
             self.assertTrue(m.called)
+
 
 if __name__ == '__main__':
     unittest.main()

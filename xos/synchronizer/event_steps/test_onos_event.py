@@ -92,7 +92,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_enable(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
@@ -109,7 +109,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_disable(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
@@ -126,7 +126,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_no_switch(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
@@ -145,7 +145,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_no_port(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 

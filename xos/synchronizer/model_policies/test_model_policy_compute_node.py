@@ -16,11 +16,13 @@
 
 import unittest
 import ipaddress
-from mock import patch, call, Mock, PropertyMock
+from mock import patch, Mock
 
-import os, sys
+import os
+import sys
 
-test_path=os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+test_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
 
 class TestComputeNodePolicy(unittest.TestCase):
     def setUp(self):
@@ -38,7 +40,7 @@ class TestComputeNodePolicy(unittest.TestCase):
 
         import xossynchronizer.modelaccessor
         import mock_modelaccessor
-        reload(mock_modelaccessor) # in case nose2 loaded it in a previous test
+        reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
         reload(xossynchronizer.modelaccessor)      # in case nose2 loaded it in a previous test
 
         from model_policy_compute_nodes import ComputeNodePolicy, model_accessor
@@ -51,8 +53,8 @@ class TestComputeNodePolicy(unittest.TestCase):
         for (k, v) in model_accessor.all_model_classes.items():
             globals()[k] = v
 
-        # Some of the functions we call have side-effects. For example, creating a VSGServiceInstance may lead to creation of
-        # tags. Ideally, this wouldn't happen, but it does. So make sure we reset the world.
+        # Some of the functions we call have side-effects. For example, creating a VSGServiceInstance may lead to
+        # creation of tags. Ideally, this wouldn't happen, but it does. So make sure we reset the world.
         model_accessor.reset_all_object_stores()
 
         self.policy = ComputeNodePolicy
@@ -90,7 +92,7 @@ class TestComputeNodePolicy(unittest.TestCase):
     def test_getVlanByCidr_same_subnet(self):
 
         mock_pi_ip = unicode("10.6.1.2/24", "utf-8")
-        
+
         mock_pi = Mock()
         mock_pi.vlanUntagged = 1234
         mock_pi.ips = str(self.policy.getPortCidrByIp(mock_pi_ip))
@@ -142,8 +144,8 @@ class TestComputeNodePolicy(unittest.TestCase):
         self.model.node.dataPlaneIntf = "test_interface"
 
         with patch.object(PortInterface.objects, "get_items") as get_pi, \
-            patch.object(self.policy, "getPortCidrByIp") as get_subnet, \
-            patch.object(PortInterface, 'save') as mock_save:
+                patch.object(self.policy, "getPortCidrByIp") as get_subnet, \
+                patch.object(PortInterface, 'save') as mock_save:
 
             get_pi.return_value = [mock_pi]
             get_subnet.return_value = mock_pi.ips
@@ -161,8 +163,8 @@ class TestComputeNodePolicy(unittest.TestCase):
         self.model.node.dataPlaneIp = unicode("10.6.1.2/24", "utf-8")
 
         with patch.object(PortInterface.objects, "get_items") as get_pi, \
-            patch.object(self.policy, "getVlanByCidr") as get_vlan, \
-            patch.object(PortInterface, "save", autospec=True) as mock_save:
+                patch.object(self.policy, "getVlanByCidr") as get_vlan, \
+                patch.object(PortInterface, "save", autospec=True) as mock_save:
 
             get_pi.return_value = []
             get_vlan.return_value = "1234"
@@ -181,4 +183,3 @@ class TestComputeNodePolicy(unittest.TestCase):
 if __name__ == '__main__':
     sys.path.append("../steps")  # so we can import helpers from steps directory
     unittest.main()
-

@@ -117,15 +117,21 @@ class SyncFabricPort(SyncStep):
     def delete_record(self, model):
         if model.leaf_model_name == "PortInterface":
             log.info("Received update for PortInterface", port=model.port.portId, interface=model.name)
-            log.info("Removing port interface %s from port %s/%s in onos-fabric" % (model.name, model.port.switch.ofId, model.port.portId))
+            log.info("Removing port interface %s from port %s/%s in onos-fabric" %
+                     (model.name, model.port.switch.ofId, model.port.portId))
 
             # resync the existing interfaces
             return self.sync_record(model.port)
 
         if model.leaf_model_name == "FabricIpAddress":
             # TODO add unit tests
-            log.info("Received update for FabricIpAddress", port=model.interface.port.portId, interface=model.interface.name, ip=model.ip)
-            log.info("Removing IP %s from interface %s, on port %s/%s in onos-fabric" % (model.ip, model.interface.name, model.interface.port.switch.ofId, model.interface.port.portId))
+            log.info(
+                "Received update for FabricIpAddress",
+                port=model.interface.port.portId,
+                interface=model.interface.name,
+                ip=model.ip)
+            log.info("Removing IP %s from interface %s, on port %s/%s in onos-fabric" %
+                     (model.ip, model.interface.name, model.interface.port.switch.ofId, model.interface.port.portId))
 
             # resync the existing interfaces
             return self.sync_record(model.interface.port)
