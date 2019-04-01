@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#from __future__ import absolute_import
+
+import imp
 import unittest
 import json
 from mock import patch, Mock
@@ -42,8 +45,8 @@ class TestOnosPortEvent(unittest.TestCase):
 
         import xossynchronizer.modelaccessor
         import mock_modelaccessor
-        reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
-        reload(xossynchronizer.modelaccessor)  # in case nose2 loaded it in a previous test
+        imp.reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
+        imp.reload(xossynchronizer.modelaccessor)  # in case nose2 loaded it in a previous test
 
         from xossynchronizer.modelaccessor import model_accessor
         self.model_accessor = model_accessor
@@ -92,7 +95,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_enable(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
@@ -109,7 +112,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_disable(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
@@ -126,7 +129,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_no_switch(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
@@ -145,7 +148,7 @@ class TestOnosPortEvent(unittest.TestCase):
 
     def test_process_event_no_port(self):
         with patch.object(Switch.objects, "get_items") as switch_objects, \
-             patch.object(SwitchPort.objects, "get_items") as switchport_objects:
+                patch.object(SwitchPort.objects, "get_items") as switchport_objects:
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 

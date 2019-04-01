@@ -14,9 +14,14 @@
 
 # docker build -t xosproject/fabric-synchronizer:candidate -f Dockerfile.synchronizer .
 
-# xosproject/fabric-synchronizer
-FROM xosproject/xos-synchronizer-base:2.2.18
+FROM xosproject/alpine-grpc-base:0.9.0
 
+# Install pip packages
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt \
+ && pip freeze > /var/xos/pip_freeze_fabric_service_`date -u +%Y%m%dT%H%M%S`
+ 
+# Copy files
 COPY xos/synchronizer /opt/xos/synchronizers/fabric
 COPY VERSION /opt/xos/synchronizers/fabric/
 

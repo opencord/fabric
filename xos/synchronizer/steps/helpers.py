@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 class Helpers():
     @staticmethod
     def format_url(url):
@@ -19,6 +21,7 @@ class Helpers():
             return url
         else:
             return 'http://%s' % url
+
     @staticmethod
     def get_onos_fabric_service(model_accessor):
         # FIXME do not select by name but follow ServiceDependency

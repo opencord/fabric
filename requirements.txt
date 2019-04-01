@@ -1,0 +1,4 @@
+xossynchronizer~=3.0.1
+xosapi~=3.0.1
+xoskafka~=3.0.1
+ipaddress~=1.0.22

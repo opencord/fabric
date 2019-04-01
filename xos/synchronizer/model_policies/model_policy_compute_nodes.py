@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+
 import ipaddress
 import random
 from xossynchronizer.modelaccessor import NodeToSwitchPort, PortInterface, model_accessor
@@ -21,9 +23,8 @@ from xossynchronizer.model_policies.policy import Policy
 from xosconfig import Config
 from multistructlog import create_logger
 
-from helpers import Helpers
-
 log = create_logger(Config().get('logging'))
+
 
 class ComputeNodePolicy(Policy):
     model_name = "NodeToSwitchPort"
@@ -42,7 +43,7 @@ class ComputeNodePolicy(Policy):
 
     @staticmethod
     def generateVlan(used_vlans):
-        availabel_tags = range(16, 4093)
+        availabel_tags = list(range(16, 4093))
         valid_tags = list(set(availabel_tags) - set(used_vlans))
         if len(valid_tags) == 0:
             raise Exception("No VLANs left")
@@ -65,7 +66,12 @@ class ComputeNodePolicy(Policy):
         return self.handle_update(node_to_port)
 
     def handle_update(self, node_to_port):
-        log.info("MODEL_POLICY: NodeToSwitchPort %s handle update" % node_to_port.id, node=node_to_port.node, port=node_to_port.port, switch=node_to_port.port.switch)
+        log.info(
+            "MODEL_POLICY: NodeToSwitchPort %s handle update" %
+            node_to_port.id,
+            node=node_to_port.node,
+            port=node_to_port.port,
+            switch=node_to_port.port.switch)
 
         compute_node = node_to_port.node
 
@@ -92,9 +98,8 @@ class ComputeNodePolicy(Policy):
             )
 
             interface.save()
-        
-        # TODO if the model is updated I need to remove the old interface, how?
 
+        # TODO if the model is updated I need to remove the old interface, how?
 
     def handle_delete(self, node_to_port):
         pass

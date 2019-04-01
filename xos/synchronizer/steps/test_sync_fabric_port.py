@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#from __future__ import absolute_import
+
+import imp
 import unittest
 import urllib
 import functools
@@ -29,6 +32,7 @@ def match_json(desired, req):
         raise Exception("Got request %s, but body is not matching" % req.url)
         return False
     return True
+
 
 class TestSyncFabricPort(unittest.TestCase):
 
@@ -49,8 +53,8 @@ class TestSyncFabricPort(unittest.TestCase):
 
         import xossynchronizer.modelaccessor
         import mock_modelaccessor
-        reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
-        reload(xossynchronizer.modelaccessor)  # in case nose2 loaded it in a previous test
+        imp.reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
+        imp.reload(xossynchronizer.modelaccessor)  # in case nose2 loaded it in a previous test
 
         from xossynchronizer.modelaccessor import model_accessor
         self.model_accessor = model_accessor

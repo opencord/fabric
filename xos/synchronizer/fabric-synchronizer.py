@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 # Copyright 2017-present Open Networking Foundation
 #
@@ -13,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-#!/usr/bin/env python
-
-# This imports and runs ../../xos-observer.py
+from __future__ import absolute_import
 
 import os
 from xossynchronizer import Synchronizer
