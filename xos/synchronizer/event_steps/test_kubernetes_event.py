@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#from __future__ import absolute_import
+
+import imp
 import unittest
 import json
-import functools
-from mock import patch, call, Mock, PropertyMock
-import requests_mock
+from mock import patch, call, Mock
+import os
+import sys
 
-import os, sys
 
-test_path=os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+test_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
 
 class TestKubernetesEvent(unittest.TestCase):
 
@@ -42,8 +45,8 @@ class TestKubernetesEvent(unittest.TestCase):
 
         import xossynchronizer.modelaccessor
         import mock_modelaccessor
-        reload(mock_modelaccessor) # in case nose2 loaded it in a previous test
-        reload(xossynchronizer.modelaccessor)      # in case nose2 loaded it in a previous test
+        imp.reload(mock_modelaccessor)  # in case nose2 loaded it in a previous test
+        imp.reload(xossynchronizer.modelaccessor)  # in case nose2 loaded it in a previous test
 
         from xossynchronizer.modelaccessor import model_accessor
         self.model_accessor = model_accessor
@@ -59,18 +62,18 @@ class TestKubernetesEvent(unittest.TestCase):
 
         self.onos = ONOSService(name="myonos",
                                 id=1111,
-                                rest_hostname = "onos-url",
-                                rest_port = "8181",
-                                rest_username = "karaf",
-                                rest_password = "karaf",
+                                rest_hostname="onos-url",
+                                rest_port="8181",
+                                rest_username="karaf",
+                                rest_password="karaf",
                                 backend_code=1,
                                 backend_status="succeeded")
 
         self.fabric_service = FabricService(name="fabric",
-                                                   id=1112,
-                                                   backend_code=1,
-                                                   backend_status="succeeded",
-                                                   provider_services=[self.onos])
+                                            id=1112,
+                                            backend_code=1,
+                                            backend_status="succeeded",
+                                            provider_services=[self.onos])
 
         self.switch = Switch(name="switch1",
                              backend_code=1,
@@ -115,7 +118,7 @@ class TestKubernetesEvent(unittest.TestCase):
             self.assertEqual(self.switch.backend_status, "resynchronize due to kubernetes event")
 
             switch_save.assert_called_with(self.switch, update_fields=["updated", "backend_code", "backend_status"],
-                                            always_update_timestamp=True)
+                                           always_update_timestamp=True)
 
             self.assertEqual(self.port1.backend_code, 0)
             self.assertEqual(self.port1.backend_status, "resynchronize due to kubernetes event")
@@ -123,10 +126,22 @@ class TestKubernetesEvent(unittest.TestCase):
             self.assertEqual(self.port2.backend_code, 0)
             self.assertEqual(self.port2.backend_status, "resynchronize due to kubernetes event")
 
-            switchport_save.assert_has_calls([call(self.port1, update_fields=["updated", "backend_code", "backend_status"],
-                                            always_update_timestamp=True),
-                                       call(self.port2, update_fields=["updated", "backend_code", "backend_status"],
-                                            always_update_timestamp=True)])
+            switchport_save.assert_has_calls(
+                [
+                    call(
+                        self.port1,
+                        update_fields=[
+                            "updated",
+                            "backend_code",
+                            "backend_status"],
+                        always_update_timestamp=True),
+                    call(
+                        self.port2,
+                        update_fields=[
+                            "updated",
+                            "backend_code",
+                            "backend_status"],
+                        always_update_timestamp=True)])
 
     def test_process_event_unknownstatus(self):
         with patch.object(FabricService.objects, "get_items") as fabric_service_objects, \
@@ -220,8 +235,6 @@ class TestKubernetesEvent(unittest.TestCase):
 
             switchport_save.assert_not_called()
 
+
 if __name__ == '__main__':
     unittest.main()
-
-
-

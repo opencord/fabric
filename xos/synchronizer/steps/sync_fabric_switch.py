@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#from __future__ import absolute_import
+
 import requests
 from requests.auth import HTTPBasicAuth
 from xossynchronizer.steps.syncstep import SyncStep
@@ -25,6 +27,7 @@ from helpers import Helpers
 
 log = create_logger(Config().get('logging'))
 
+
 class SyncFabricSwitch(SyncStep):
     provides = [Switch]
     observes = Switch
@@ -33,22 +36,22 @@ class SyncFabricSwitch(SyncStep):
         log.info("Adding switch %s to onos-fabric" % model.name)
         # Send device info to onos-fabric netcfg
         data = {
-          "devices": {
-            model.ofId: {
-              "basic": {
-                "name": model.name,
-                "driver": model.driver
-              },
-              "segmentrouting" : {
-                "name" : model.name,
-                "ipv4NodeSid" : model.ipv4NodeSid,
-                "ipv4Loopback" : model.ipv4Loopback,
-                "routerMac" : model.routerMac,
-                "isEdgeRouter" : model.isEdgeRouter,
-                "adjacencySids" : []
-              }
+            "devices": {
+                model.ofId: {
+                    "basic": {
+                        "name": model.name,
+                        "driver": model.driver
+                    },
+                    "segmentrouting": {
+                        "name": model.name,
+                        "ipv4NodeSid": model.ipv4NodeSid,
+                        "ipv4Loopback": model.ipv4Loopback,
+                        "routerMac": model.routerMac,
+                        "isEdgeRouter": model.isEdgeRouter,
+                        "adjacencySids": []
+                    }
+                }
             }
-          }
         }
 
         onos = Helpers.get_onos_fabric_service(model_accessor=self.model_accessor)
@@ -61,15 +64,15 @@ class SyncFabricSwitch(SyncStep):
             raise Exception("Failed to add device %s into ONOS" % model.name)
         else:
             try:
-                print r.json()
+                log.info("result", json=r.json())
             except Exception:
-                print r.text
+                log.info("result", text=r.text)
 
     def delete_record(self, model):
         log.info("Removing switch %s from onos-fabric" % model.name)
         onos = Helpers.get_onos_fabric_service(model_accessor=self.model_accessor)
         url = 'http://%s:%s/onos/v1/network/configuration/devices/%s' % (
-        onos.rest_hostname, onos.rest_port, model.ofId)
+            onos.rest_hostname, onos.rest_port, model.ofId)
 
         r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
 

@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
 
 import json
-import os
-import sys
 from xossynchronizer.event_steps.eventstep import EventStep
 from xossynchronizer.modelaccessor import model_accessor
 from xossynchronizer.modelaccessor import FabricService, Switch, Service
@@ -24,6 +23,7 @@ from xosconfig import Config
 from multistructlog import create_logger
 
 log = create_logger(Config().get('logging'))
+
 
 class KubernetesPodDetailsEventStep(EventStep):
     topics = ["xos.kubernetes.pod-details"]
@@ -63,12 +63,17 @@ class KubernetesPodDetailsEventStep(EventStep):
 
             for switch in Switch.objects.all():
                 log.info("Dirtying Switch", switch=switch)
-                switch.backend_code=0
-                switch.backend_status="resynchronize due to kubernetes event"
+                switch.backend_code = 0
+                switch.backend_status = "resynchronize due to kubernetes event"
                 switch.save(update_fields=["updated", "backend_code", "backend_status"], always_update_timestamp=True)
 
                 for port in switch.ports.all():
                     log.info("Dirtying SwitchPort", port=port)
-                    port.backend_code=0
-                    port.backend_status="resynchronize due to kubernetes event"
-                    port.save(update_fields=["updated", "backend_code", "backend_status"], always_update_timestamp=True)
+                    port.backend_code = 0
+                    port.backend_status = "resynchronize due to kubernetes event"
+                    port.save(
+                        update_fields=[
+                            "updated",
+                            "backend_code",
+                            "backend_status"],
+                        always_update_timestamp=True)
