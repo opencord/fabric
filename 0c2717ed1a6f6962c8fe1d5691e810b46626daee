@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b795641_99a834c0",
+        "filename": "Dockerfile.synchronizer",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000011
+      },
+      "writtenOn": "2019-04-02T15:40:00Z",
+      "side": 1,
+      "message": "fabric_service",
+      "range": {
+        "startLine": 22,
+        "startChar": 37,
+        "endLine": 22,
+        "endChar": 48
+      },
+      "revId": "0c2717ed1a6f6962c8fe1d5691e810b46626daee",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
