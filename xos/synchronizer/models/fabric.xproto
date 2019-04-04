@@ -35,6 +35,10 @@ message Switch(XOSBase) {
     required bool isEdgeRouter = 7 [
         help_text="True if the fabric switch is a leaf, False if it is a spine",
         default = True];
+    optional string managementAddress = 8 [
+        help_text = "Address where this switch can be managed",
+        feedback_state = True,
+        max_length = 1024];
 }
 
 message SwitchPort(XOSBase) {
@@ -60,6 +64,10 @@ message SwitchPort(XOSBase) {
         help_text = "operational status of port",
         choices = "(('enabled', 'enabled'), ('disabled', 'disabled'))",
         feedback_state = True,
+        max_length = 32];
+    optional string kind = 6 [
+        help_text = "type of device attached to port",
+        choices = "(('access', 'access'), ('internet', 'internet'))",
         max_length = 32];
 }
 

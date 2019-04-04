@@ -15,9 +15,12 @@
 
 from __future__ import absolute_import
 
+import datetime
 import json
+import time
 from xossynchronizer.event_steps.eventstep import EventStep
 from xosconfig import Config
+from xoskafka import XOSKafkaProducer
 from multistructlog import create_logger
 
 log = create_logger(Config().get('logging'))
@@ -29,6 +32,33 @@ class OnosPortEventStep(EventStep):
 
     def __init__(self, *args, **kwargs):
         super(OnosPortEventStep, self).__init__(*args, **kwargs)
+
+    def send_alarm(self, switch, port, value):
+        timestamp = time.mktime(datetime.datetime.strptime(value["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
+        state = "RAISED" if port.oper_status == "disabled" else "CLEARED"
+
+        context = {"portId": port.portId,
+                   "portKind": port.kind or "unknown",
+                   "switch.name": switch.name}
+
+        alarm = {"category": "SWITCH",
+                 "reported_ts": time.time(),
+                 "raised_ts": timestamp,
+                 "state": state,
+                 "alarm_type_name": "SWITCH.PORT_LOS",
+                 "severity": "MAJOR",
+                 "resource_id": switch.ofId,
+                 "context": context,
+                 "type": "COMMUNICATION",
+                 "id": "xos.fabricservice.%s.SWITCH_PORT_LOS" % switch.ofId,
+                 "description": "xos.fabricservice.%s - SWITCH PORT LOS Alarm -"
+                                " SWITCH_PORT_LOS - %s" % (switch.ofId, state)}
+
+        topic = "xos.alarms.fabric-service"
+        key = "%s:%s" % (switch.ofId, port.portId)
+        value = json.dumps(alarm, default=lambda o: repr(o))
+
+        XOSKafkaProducer.produce(topic, key, value)
 
     def process_event(self, event):
         value = json.loads(event.value)
@@ -58,3 +88,4 @@ class OnosPortEventStep(EventStep):
         if oper_status != port.oper_status:
             port.oper_status = oper_status
             port.save_changed_fields()
+            self.send_alarm(switch, port, value)
