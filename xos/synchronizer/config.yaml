@@ -23,6 +23,7 @@ sys_dir: "/opt/xos/synchronizers/fabric/sys"
 models_dir: "/opt/xos/synchronizers/fabric/models"
 model_policies_dir: "/opt/xos/synchronizers/fabric/model_policies"
 event_steps_dir: "/opt/xos/synchronizers/fabric/event_steps"
+pull_steps_dir: "/opt/xos/synchronizers/fabric/pull_steps"
 logging:
   version: 1
   handlers:
