@@ -14,10 +14,12 @@
 
 #from __future__ import absolute_import
 
+import datetime
 import imp
 import unittest
 import json
-from mock import patch, Mock
+import time
+from mock import patch, Mock, MagicMock, ANY
 
 import os
 import sys
@@ -39,6 +41,15 @@ class TestOnosPortEvent(unittest.TestCase):
         Config.init(config, "synchronizer-config-schema.yaml")
         # END Setting up the config module
 
+        # Mock the kafka producer
+        self.mockxoskafka = MagicMock()
+        modules = {
+            'xoskafka': self.mockxoskafka,
+            'xoskafka.XOSKafkaProducer': self.mockxoskafka.XOSKafkaProducer,
+        }
+        self.module_patcher = patch.dict('sys.modules', modules)
+        self.module_patcher.start()
+
         from xossynchronizer.mock_modelaccessor_build import mock_modelaccessor_config
         mock_modelaccessor_config(test_path, [("fabric", "fabric.xproto"),
                                               ("onos-service", "onos.xproto")])
@@ -52,7 +63,13 @@ class TestOnosPortEvent(unittest.TestCase):
         self.model_accessor = model_accessor
 
         from mock_modelaccessor import MockObjectList
-        from onos_event import OnosPortEventStep
+
+        # necessary to reset XOSKafkaProducer's call_count
+        import onos_event
+        reload(onos_event)
+
+        from onos_event import OnosPortEventStep, XOSKafkaProducer
+        self.XOSKafkaProducer = XOSKafkaProducer
 
         # import all class names to globals
         for (k, v) in model_accessor.all_model_classes.items():
@@ -79,6 +96,7 @@ class TestOnosPortEvent(unittest.TestCase):
                                 backend_status="succeeded")
 
         self.port2 = SwitchPort(name="switch1port2",
+                                kind="access",
                                 switch=self.switch,
                                 switch_id=self.switch.id,
                                 portId="2",
@@ -99,7 +117,8 @@ class TestOnosPortEvent(unittest.TestCase):
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
-            event_dict = {"deviceId": self.switch.ofId,
+            event_dict = {"timestamp":"2019-03-21T18:00:26.613Z",
+                          "deviceId": self.switch.ofId,
                           "portId": self.port1.portId,
                           "enabled": True}
             event = Mock()
@@ -116,7 +135,8 @@ class TestOnosPortEvent(unittest.TestCase):
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
-            event_dict = {"deviceId": self.switch.ofId,
+            event_dict = {"timestamp":"2019-03-21T18:00:26.613Z",
+                          "deviceId": self.switch.ofId,
                           "portId": self.port1.portId,
                           "enabled": False}
             event = Mock()
@@ -133,7 +153,8 @@ class TestOnosPortEvent(unittest.TestCase):
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
-            event_dict = {"deviceId": "doesnotexist",
+            event_dict = {"timestamp":"2019-03-21T18:00:26.613Z",
+                          "deviceId": "doesnotexist",
                           "portId": self.port1.portId,
                           "enabled": True}
             event = Mock()
@@ -152,7 +173,8 @@ class TestOnosPortEvent(unittest.TestCase):
             switch_objects.return_value = [self.switch]
             switchport_objects.return_value = [self.port1, self.port2]
 
-            event_dict = {"deviceId": self.switch.ofId,
+            event_dict = {"timestamp":"2019-03-21T18:00:26.613Z",
+                          "deviceId": self.switch.ofId,
                           "portId": "doesnotexist",
                           "enabled": True}
             event = Mock()
@@ -164,6 +186,86 @@ class TestOnosPortEvent(unittest.TestCase):
 
             # should not have changed
             self.assertEqual(self.port1.oper_status, None)
+
+    def test_send_alarm(self):
+        self.port2.oper_status = "disabled"
+        value = {"timestamp":"2019-03-21T18:00:26.613Z",
+                 "deviceId":"of:0000000000000001",
+                 "portId":"2",
+                 "enabled":False,
+                 "speed":10000,
+                 "type":"COPPER"}
+
+        step = self.event_step(model_accessor=self.model_accessor, log=self.log)
+        step.send_alarm(self.switch, self.port2, value)
+
+        self.assertEqual(self.XOSKafkaProducer.produce.call_count, 1)
+        topic = self.XOSKafkaProducer.produce.call_args[0][0]
+        key = self.XOSKafkaProducer.produce.call_args[0][1]
+        event = json.loads(self.XOSKafkaProducer.produce.call_args[0][2])
+
+        self.assertEqual(topic, "xos.alarms.fabric-service")
+        self.assertEqual(key, "of:0000000000000001:2")
+
+        raised_ts = time.mktime(datetime.datetime.strptime(value["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
+
+        self.maxDiff = None
+
+        expected_alarm = {
+                 u"category": u"SWITCH",
+                 u"reported_ts": ANY,
+                 u"raised_ts": raised_ts,
+                 u"state": u"RAISED",
+                 u"alarm_type_name": u"SWITCH.PORT_LOS",
+                 u"severity": u"MAJOR",
+                 u"resource_id": unicode(self.switch.ofId),
+                 u"context": {u"portId": u"2", u"portKind": u"access",
+                              u'switch.name': u'switch1'},
+                 u"type": u"COMMUNICATION",
+                 u"id": u"xos.fabricservice.%s.SWITCH_PORT_LOS" % self.switch.ofId,
+                 u"description": u"xos.fabricservice.%s - SWITCH PORT LOS Alarm - SWITCH_PORT_LOS - RAISED" % self.switch.ofId}
+
+        self.assertDictEqual(expected_alarm, event)
+
+    def test_clear_alarm(self):
+        self.port2.oper_status = "enabled"
+        value = {"timestamp":"2019-03-21T18:00:26.613Z",
+                 "deviceId":"of:0000000000000001",
+                 "portId":"2",
+                 "enabled":False,
+                 "speed":10000,
+                 "type":"COPPER"}
+
+        step = self.event_step(model_accessor=self.model_accessor, log=self.log)
+        step.send_alarm(self.switch, self.port2, value)
+
+        self.assertEqual(self.XOSKafkaProducer.produce.call_count, 1)
+        topic = self.XOSKafkaProducer.produce.call_args[0][0]
+        key = self.XOSKafkaProducer.produce.call_args[0][1]
+        event = json.loads(self.XOSKafkaProducer.produce.call_args[0][2])
+
+        self.assertEqual(topic, "xos.alarms.fabric-service")
+        self.assertEqual(key, "of:0000000000000001:2")
+
+        raised_ts = time.mktime(datetime.datetime.strptime(value["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").timetuple())
+
+        self.maxDiff = None
+
+        expected_alarm = {
+                 u"category": u"SWITCH",
+                 u"reported_ts": ANY,
+                 u"raised_ts": raised_ts,
+                 u"state": u"CLEARED",
+                 u"alarm_type_name": u"SWITCH.PORT_LOS",
+                 u"severity": u"MAJOR",
+                 u"resource_id": unicode(self.switch.ofId),
+                 u"context": {u"portId": u"2", u"portKind": u"access",
+                              u'switch.name': u'switch1'},
+                 u"type": u"COMMUNICATION",
+                 u"id": u"xos.fabricservice.%s.SWITCH_PORT_LOS" % self.switch.ofId,
+                 u"description": u"xos.fabricservice.%s - SWITCH PORT LOS Alarm - SWITCH_PORT_LOS - CLEARED" % self.switch.ofId}
+
+        self.assertDictEqual(expected_alarm, event)
 
 
 if __name__ == '__main__':

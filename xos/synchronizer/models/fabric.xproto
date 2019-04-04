@@ -59,6 +59,9 @@ message SwitchPort(XOSBase) {
         help_text = "operational status of port",
         choices = "(('enabled', 'enabled'), ('disabled', 'disabled'))",
         feedback_state = True];
+    optional string kind = 6 [
+        help_text = "type of device attached to port",
+        choices = "(('access', 'access'), ('internet', 'internet'))"];
 }
 
 message PortInterface(XOSBase) {
