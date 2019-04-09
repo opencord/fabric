@@ -19,11 +19,11 @@ message Switch(XOSBase) {
         max_length = 19];
     required string name = 2 [
         help_text = "The unique name of the fabric switch",
-        max_length = 254];
+        max_length = 256];
     required string driver = 3 [
         help_text = "The driver used by the SDN controller",
         default = "ofdpa3",
-        max_length = 254];
+        max_length = 256];
     required int32 ipv4NodeSid = 4 [
         help_text = "The MPLS label used by the switch [17 - 1048576]"];
     required string ipv4Loopback = 5 [
@@ -54,11 +54,13 @@ message SwitchPort(XOSBase) {
     optional string admin_state = 4 [
         help_text = "desired administrative state of port",
         choices = "(('enabled', 'enabled'), ('disabled', 'disabled'))",
-        default = "enabled"];
+        default = "enabled",
+        max_length = 32];
     optional string oper_status = 5 [
         help_text = "operational status of port",
         choices = "(('enabled', 'enabled'), ('disabled', 'disabled'))",
-        feedback_state = True];
+        feedback_state = True,
+        max_length = 32];
 }
 
 message PortInterface(XOSBase) {
@@ -70,7 +72,7 @@ message PortInterface(XOSBase) {
         db_index = True];
     required string name = 2 [
         help_text = "The unique name of the fabric switch port",
-        max_length = 254];
+        max_length = 256];
     optional int32 vlanUntagged = 3 [
         help_text = "The optional untagged VLAN ID for the interface"];
 }
@@ -104,5 +106,5 @@ message FabricIpAddress(XOSBase) {
         unique_with = "interface"];
     optional string description = 3 [
         help_text = "A short description of the IP address",
-        max_length = 254];
+        max_length = 256];
 }
