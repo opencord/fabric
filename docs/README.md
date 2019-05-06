@@ -3,7 +3,7 @@
 The Fabric service is responsible for configuring the fabric switches in ONOS.
 
 At this point we assume you followed the
-[Fabric setup](../fabric-setup.md) guide and your physical infrastructure
+[Fabric setup](../installation/fabric-setup.md) guide and your physical infrastructure
 is configured and ready to go.
 
 ## Models
