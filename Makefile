@@ -18,7 +18,7 @@ SHELL = bash -e -o pipefail
 # Variables
 VERSION                  ?= $(shell cat ./VERSION)
 SERVICE_NAME             ?= $(notdir $(abspath .))
-SYNCHRONIZER_NAME        ?= fabric-synchronizer
+SYNCHRONIZER_NAME        ?= $(shell if [ "$(shell uname -m)" = "aarch64" ] ; then echo "fabric-synchronizer-arm64"; else echo "fabric-synchronizer"; fi)
 
 ## Docker related
 DOCKER_REGISTRY          ?=
@@ -37,8 +37,13 @@ DOCKER_LABEL_BUILD_DATE  ?= $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 XOS_DIR                  ?= "../../../xos"
 SERVICES_DIR             ?= "../.."
 
+DOCKERFILE_BASEIMAGE     ?= $(shell if [ "$(shell uname -m)" = "aarch64" ] ; then echo "xosproject/alpine-grpc-base-arm64:0.9.0"; else echo "xosproject/alpine-grpc-base:0.9.0"; fi)
+DOCKERBUILD_ARGBASE      ?= $(shell if [ "$(shell uname -m)" = "aarch64" ] ; then echo "--build-arg BASE_IMAGE=${DOCKERFILE_BASEIMAGE}"; else echo ""; fi)
+
 all: test
 
+#For arm64 platform, the docker-build command can be something like:
+#DOCKERFILE_BASEIMAGE=xxx make docker-build
 docker-build:
 	docker build $(DOCKER_BUILD_ARGS) \
     -t ${DOCKER_IMAGENAME} \
@@ -47,6 +52,7 @@ docker-build:
     --build-arg org_label_schema_vcs_ref="${DOCKER_LABEL_VCS_REF}" \
     --build-arg org_label_schema_build_date="${DOCKER_LABEL_BUILD_DATE}" \
     --build-arg org_opencord_vcs_commit_date="${DOCKER_LABEL_COMMIT_DATE}" \
+    ${DOCKERBUILD_ARGBASE} \
     -f Dockerfile.synchronizer .
 
 docker-push:
