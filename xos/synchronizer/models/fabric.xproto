@@ -13,6 +13,7 @@ message FabricService(Service) {
 message Switch(XOSBase) {
     option verbose_name = "Fabric Switch";
     option description = "An individual fabric switch managed by ONOS";
+    option sync_implemented = "True";
 
     required string ofId = 1 [
         help_text = "The unique OpenFlow ID of the fabric switch",
@@ -44,6 +45,7 @@ message Switch(XOSBase) {
 message SwitchPort(XOSBase) {
     option verbose_name = "Fabric Switch Port";
     option description = "A port on a fabric switch";
+    option sync_implemented = "True";
 
     required manytoone switch->Switch:ports = 1:1001 [
         help_text = "The fabric switch the port belongs to",
@@ -88,6 +90,7 @@ message PortInterface(XOSBase) {
 message NodeToSwitchPort(XOSBase) {
     option verbose_name = "Node to switch port";
     option description = "Compute Node connection to a Fabric switch port";
+    option policy_implemented = "True";
 
     required manytoone port->SwitchPort:node_to_switch_ports = 1:1002 [
         help_text = "The fabric switch port the node is connected to",
