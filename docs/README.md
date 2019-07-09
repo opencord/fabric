@@ -20,10 +20,14 @@ The fabric service is composed of the following models:
     - `ipv4Loopback`. Fabric loopback interface IP address.
     - `routerMac`. MAC address of the fabric switch used for all interfaces.
     - `isEdgeRouter`. True if the switch is a leaf, false if it is a spine.
+    - `managementAddress`. Address where this switch can be managed.
 - `SwitchPort`. Represents a port on a fabric `Switch`.
     - `switch`. Relation to `Switch` that owns this port.
     - `portId`. Unique OpenFlow port ID.
     - `host_learning`. True to enable autodiscovery.
+    - `admin_state`. Desired adminiatrative state, enabled | disabled.
+    - `oper_status`. Operational status, feedback from switch, enabled | disabled.
+    - `kind`. Kind of port, access | internet.
 - `PortInterface`. Represents an interface on a `Port`.
     - `port`. Relation to the `SwitchPort` that owns this interface.
     - `name`. The unique name of the fabric switch port.
@@ -108,9 +112,7 @@ imports:
   - custom_types/nodetoswitchport.yaml
   - custom_types/switch.yaml
   - custom_types/switchport.yaml
-  - custom_types/deployment.yaml
   - custom_types/site.yaml
-  - custom_types/sitedeployment.yaml
 
 topology_template:
   node_templates:
@@ -123,8 +125,8 @@ topology_template:
             dataPlaneIp: 10.6.1.17/24
             name: node1.cord.lab
         requirements:
-            - site_deployment:
-                node: site_deployment
+            - site:
+                node: mySite
                 relationship: tosca.relationships.BelongsToOne
     
     node#node2:
@@ -134,8 +136,8 @@ topology_template:
             dataPlaneIp: 10.6.2.18/24
             name: node2.cord.lab
         requirements:
-            - site_deployment:
-                node: site_deployment
+            - site:
+                node: mySite
                 relationship: tosca.relationships.BelongsToOne
 
     # ports (defined in the above recipe)
@@ -193,21 +195,6 @@ topology_template:
           abbreviated_name: ms
           site_url: http://opencord.org/
           hosts_nodes: true
-
-    myDeployment:
-      type: tosca.nodes.Deployment
-      properties:
-        name: myDeployment
-
-    site_deployment:
-      type: tosca.nodes.SiteDeployment
-      requirements:
-        - site:
-            node: mySite
-            relationship: tosca.relationships.BelongsToOne
-        - deployment:
-            node: myDeployment
-            relationship: tosca.relationships.BelongsToOne
 ```
 
 This will cause the correct fabric configuration to be generated and pushed to the fabric.
