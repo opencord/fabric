@@ -20,10 +20,14 @@ The fabric service is composed of the following models:
     - `ipv4Loopback`. Fabric loopback interface IP address.
     - `routerMac`. MAC address of the fabric switch used for all interfaces.
     - `isEdgeRouter`. True if the switch is a leaf, false if it is a spine.
+    - `managementAddress`. Address where this switch can be managed.
 - `SwitchPort`. Represents a port on a fabric `Switch`.
     - `switch`. Relation to `Switch` that owns this port.
     - `portId`. Unique OpenFlow port ID.
     - `host_learning`. True to enable autodiscovery.
+    - `admin_state`. [`enabled` | `disabled`]. Desired administrative state, pushed to device.
+    - `oper_status`. [`enabled` | `disabled`]. Operational status, feedback from switch.
+    - `kind`. [`access` | `internet`]. Kind of port.
 - `PortInterface`. Represents an interface on a `Port`.
     - `port`. Relation to the `SwitchPort` that owns this interface.
     - `name`. The unique name of the fabric switch port.
@@ -89,7 +93,7 @@ topology_template:
 
 > Note: This section is primarily for OpenStack-based compute nodes. It is not necessarily relevant to Kubernetes-based compute nodes at this time.
 
-Compute nodes may be attached to the fabric in order to attach compute-based VNFs to the data plane. The following section assumes the fabric switches have already been setup. The example uses the following nodes: 
+Compute nodes may be attached to the fabric in order to attach compute-based VNFs to the data plane. The following section assumes the fabric switches have already been setup. The example uses the following nodes:
 
 - `node1.cord.lab` has ip `10.6.1.17` on interface `fabricbridge` and it is attached to port `17` on the switch `leaf1` (and has a route like `10.6.2.0/24 via 10.6.1.254 dev fabricbridge` or the default route is pointing to the fabric)
 - `node2.cord.lab` has ip `10.6.2.18` on interface `fabricbridge` and it is attached to port `18` on the switch `leaf1` (and has a route like `10.6.1.0/24 via 10.6.2.254 dev fabricbridge` or the default route is pointing to the fabric)
@@ -108,9 +112,7 @@ imports:
   - custom_types/nodetoswitchport.yaml
   - custom_types/switch.yaml
   - custom_types/switchport.yaml
-  - custom_types/deployment.yaml
   - custom_types/site.yaml
-  - custom_types/sitedeployment.yaml
 
 topology_template:
   node_templates:
@@ -123,10 +125,10 @@ topology_template:
             dataPlaneIp: 10.6.1.17/24
             name: node1.cord.lab
         requirements:
-            - site_deployment:
-                node: site_deployment
+            - site:
+                node: mySite
                 relationship: tosca.relationships.BelongsToOne
-    
+
     node#node2:
         type: tosca.nodes.Node
         properties:
@@ -134,8 +136,8 @@ topology_template:
             dataPlaneIp: 10.6.2.18/24
             name: node2.cord.lab
         requirements:
-            - site_deployment:
-                node: site_deployment
+            - site:
+                node: mySite
                 relationship: tosca.relationships.BelongsToOne
 
     # ports (defined in the above recipe)
@@ -144,7 +146,7 @@ topology_template:
       properties:
         name: leaf1
         must-exist: true
-    
+
     port#port17:
       type: tosca.nodes.SwitchPort
       properties:
@@ -153,7 +155,7 @@ topology_template:
         - switch:
             node: switch#leaf1
             relationship: tosca.relationships.BelongsToOne
-    
+
     port#port18:
       type: tosca.nodes.SwitchPort
       properties:
@@ -173,7 +175,7 @@ topology_template:
             - node:
                 node: node#node1
                 relationship: tosca.relationships.BelongsToOne
-    
+
     node2_to_port18:
         type: tosca.nodes.NodeToSwitchPort
         requirements:
@@ -193,21 +195,6 @@ topology_template:
           abbreviated_name: ms
           site_url: http://opencord.org/
           hosts_nodes: true
-
-    myDeployment:
-      type: tosca.nodes.Deployment
-      properties:
-        name: myDeployment
-
-    site_deployment:
-      type: tosca.nodes.SiteDeployment
-      requirements:
-        - site:
-            node: mySite
-            relationship: tosca.relationships.BelongsToOne
-        - deployment:
-            node: myDeployment
-            relationship: tosca.relationships.BelongsToOne
 ```
 
 This will cause the correct fabric configuration to be generated and pushed to the fabric.
@@ -226,3 +213,5 @@ When `Switch` or `SwitchPort` are created, modified, or deleted, the appropriate
 
 If an event is received that indicates ONOS has been restarted, then all `Switch` and `SwitchPort` objects will be dirtied, causing the state to be resynchronized to ONOS.
 
+
+If an event is received from ONOS that indicates port status has changed, then the appropriate `Switch` and/or `SwitchPort` objects will be updated.
