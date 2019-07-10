@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d8edc75_4519001e",
+        "filename": "docs/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000011
+      },
+      "writtenOn": "2019-07-10T05:21:28Z",
+      "side": 1,
+      "message": "Any reason this list isn\u0027t formatted with square brackets before the description, like in olt-service and other places?  Or are these booleans?",
+      "range": {
+        "startLine": 28,
+        "startChar": 51,
+        "endLine": 28,
+        "endChar": 70
+      },
+      "revId": "55f46d77c94384070544abc400a5f3d57537d7d8",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": true
+    }
+  ]
+}
