@@ -40,6 +40,9 @@ message Switch(XOSBase) {
         help_text = "Address where this switch can be managed",
         feedback_state = True,
         max_length = 1024];
+    optional string pipeconf = 9 [
+        help_text = "Pipeline configuration",
+        max_length = 1024];
 }
 
 message SwitchPort(XOSBase) {
