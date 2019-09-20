@@ -101,13 +101,17 @@ class TestSyncFabricSwitch(unittest.TestCase):
         self.o.ipv4Loopback = "192.168.0.201"
         self.o.routerMac = "00:00:02:01:06:01"
         self.o.isEdgeRouter = False
+        self.o.pipeconf = "pipeconf"
+        self.o.managementAddress = "192.168.100.123"
 
         expected_conf = {
             "devices": {
                 self.o.ofId: {
                     "basic": {
                         "name": self.o.name,
-                        "driver": self.o.driver
+                        "driver": self.o.driver,
+                        "pipeconf": self.o.pipeconf,
+                        "managementAddress": self.o.managementAddress
                     },
                     "segmentrouting": {
                         "name": self.o.name,
