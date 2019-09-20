@@ -40,7 +40,9 @@ class SyncFabricSwitch(SyncStep):
                 model.ofId: {
                     "basic": {
                         "name": model.name,
-                        "driver": model.driver
+                        "driver": model.driver,
+                        "pipeconf": model.pipeconf,
+                        "managementAddress": model.managementAddress
                     },
                     "segmentrouting": {
                         "name": model.name,
@@ -48,7 +50,7 @@ class SyncFabricSwitch(SyncStep):
                         "ipv4Loopback": model.ipv4Loopback,
                         "routerMac": model.routerMac,
                         "isEdgeRouter": model.isEdgeRouter,
-                        "adjacencySids": []
+                        "adjacencySids": [],
                     }
                 }
             }
@@ -61,7 +63,7 @@ class SyncFabricSwitch(SyncStep):
 
         if r.status_code != 200:
             log.error(r.text)
-            raise Exception("Failed to add device %s into ONOS" % model.name)
+            raise Exception("Failed to add device %s into ONOS: %s" % (model.name, r.text))
         else:
             try:
                 log.info("result", json=r.json())
