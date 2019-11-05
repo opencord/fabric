@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b59b569a_86547cdf",
+        "filename": "xos/synchronizer/steps/sync_fabric_switch.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2019-11-05T19:39:25Z",
+      "side": 1,
+      "message": "do we need parens around these two variables? (has been a few weeks since I touched python code...)",
+      "range": {
+        "startLine": 66,
+        "startChar": 70,
+        "endLine": 66,
+        "endChar": 88
+      },
+      "revId": "abf23136903468641215035233d3c8c179d085c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
