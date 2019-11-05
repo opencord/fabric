@@ -22,6 +22,30 @@
       "revId": "abf23136903468641215035233d3c8c179d085c6",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a5adbf8_0f6935ae",
+        "filename": "xos/synchronizer/steps/sync_fabric_switch.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000461
+      },
+      "writtenOn": "2019-11-05T22:42:33Z",
+      "side": 1,
+      "message": "Yes\n\nDone",
+      "parentUuid": "b59b569a_86547cdf",
+      "range": {
+        "startLine": 66,
+        "startChar": 70,
+        "endLine": 66,
+        "endChar": 88
+      },
+      "revId": "abf23136903468641215035233d3c8c179d085c6",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
