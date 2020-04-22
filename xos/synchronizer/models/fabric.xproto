@@ -43,6 +43,10 @@ message Switch(XOSBase) {
     optional string pipeconf = 9 [
         help_text = "Pipeline configuration",
         max_length = 1024];
+    optional manytoone fabric->FabricService:switch = 10:1013 [
+        help_text = "The Fabric Service which owns this switch",
+        db_index = True,
+	tosca_key=True];
 }
 
 message SwitchPort(XOSBase) {
