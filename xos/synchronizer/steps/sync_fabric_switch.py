@@ -1,4 +1,3 @@
-
 # Copyright 2017-present Open Networking Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +26,6 @@ from helpers import Helpers
 
 log = create_logger(Config().get('logging'))
 
-
 class SyncFabricSwitch(SyncStep):
     provides = [Switch]
     observes = Switch
@@ -55,29 +53,30 @@ class SyncFabricSwitch(SyncStep):
                 }
             }
         }
-
-        onos = Helpers.get_onos_fabric_service(model_accessor=self.model_accessor)
-
-        url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
-        r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
-
-        if r.status_code != 200:
-            log.error(r.text)
-            raise Exception("Failed to add device %s into ONOS: %s" % (model.name, r.text))
+        onos = Helpers.get_onos(model, self.model_accessor)
+        if(onos != None):
+            url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
+            r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+            if r.status_code != 200:
+                log.error(r.text)
+                raise Exception("Failed to add device %s into ONOS: %s" % (model.name, r.text))
+            else:
+                try:
+                    log.info("result", json=r.json())
+                except Exception:
+                    log.info("result", text=r.text)
         else:
-            try:
-                log.info("result", json=r.json())
-            except Exception:
-                log.info("result", text=r.text)
+            log.error("No appropriate onos_fabric is found for switch: %s" % model.name)
+            raise Exception("Switch: %s synchronization is refused." % model.name)
 
     def delete_record(self, model):
         log.info("Removing switch %s from onos-fabric" % model.name)
-        onos = Helpers.get_onos_fabric_service(model_accessor=self.model_accessor)
-        url = 'http://%s:%s/onos/v1/network/configuration/devices/%s' % (
-            onos.rest_hostname, onos.rest_port, model.ofId)
+        onos = Helpers.get_onos(model, self.model_accessor)
 
-        r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
-
-        if r.status_code != 204:
-            log.error(r.text)
-            raise Exception("Failed to remove switch %s from ONOS" % model.name)
+        if(onos != None):
+            url = 'http://%s:%s/onos/v1/network/configuration/devices/%s' % (
+                onos.rest_hostname, onos.rest_port, model.ofId)
+            r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+            if r.status_code != 204:
+                log.error(r.text)
+                raise Exception("Failed to remove switch %s from ONOS" % model.name)
