@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c201343e_f40b246e",
+        "filename": "xos/synchronizer/steps/helpers.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-29T20:16:58Z",
+      "side": 1,
+      "message": "why not pass this as a named parameter with a default of None? i.e. \n\ndef get_onos_fabric_service(model_accessor, switch\u003dNone):\n   if switch:\n            fabric \u003d model_accessor.Service.objects.get(id\u003dswitch.fabric_id)            \n        else:\n            fabric \u003d model_accessor.Service.objects.get(name\u003d\"fabric\")",
+      "range": {
+        "startLine": 30,
+        "startChar": 48,
+        "endLine": 30,
+        "endChar": 53
+      },
+      "revId": "3b506aa886ffabe0139d4fe85f0b6570a74af9af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc0dea27_ad639d12",
+        "filename": "xos/synchronizer/steps/helpers.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-29T20:16:58Z",
+      "side": 1,
+      "message": "remove trailing whitespace please",
+      "range": {
+        "startLine": 34,
+        "startChar": 77,
+        "endLine": 34,
+        "endChar": 89
+      },
+      "revId": "3b506aa886ffabe0139d4fe85f0b6570a74af9af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a10ef55f_cb8eb24b",
+        "filename": "xos/synchronizer/steps/sync_fabric_port.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-29T20:16:58Z",
+      "side": 1,
+      "message": "remove whitespace please",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 8
+      },
+      "revId": "3b506aa886ffabe0139d4fe85f0b6570a74af9af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c7f989e4_885f071d",
+        "filename": "xos/synchronizer/steps/sync_fabric_switch.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-04-29T20:16:58Z",
+      "side": 1,
+      "message": "remove whitespace please",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 8
+      },
+      "revId": "3b506aa886ffabe0139d4fe85f0b6570a74af9af",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
