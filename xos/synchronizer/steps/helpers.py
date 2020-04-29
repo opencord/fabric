@@ -13,6 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from xosconfig import Config
+from multistructlog import create_logger
+
+log = create_logger(Config().get('logging'))
 
 class Helpers():
     @staticmethod
@@ -23,8 +27,25 @@ class Helpers():
             return 'http://%s' % url
 
     @staticmethod
-    def get_onos_fabric_service(model_accessor):
-        # FIXME do not select by name but follow ServiceDependency
-        fabric_service = model_accessor.Service.objects.get(name="fabric")
-        onos_fabric_service = fabric_service.provider_services[0].leaf_model
+    def get_onos_fabric_service(model_accessor, switch=None):
+        fabric = None
+        if switch:
+            fabric = model_accessor.Service.objects.get(id=switch.fabric_id)
+        else:
+            fabric = model_accessor.Service.objects.get(name="fabric")
+        onos_fabric_service = fabric.provider_services[0].leaf_model
         return onos_fabric_service
+
+    @staticmethod
+    def get_onos(model, model_accessor, onos=None):
+        if(model.fabric != None):
+            onos = Helpers.get_onos_fabric_service(model_accessor, model)
+        else:
+            fabric_service = model_accessor.FabricService.objects.all()
+            if(len(fabric_service) == 1):
+                onos = Helpers.get_onos_fabric_service(model_accessor)
+
+        if not onos:
+            log.error("Configuration error. Fabric Service without ONOS is not possible.")
+            raise Exception("Configuration error. Fabric Service without ONOS is not possible.") 
+        return onos
