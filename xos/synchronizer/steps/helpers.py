@@ -13,6 +13,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+from xosconfig import Config
+from multistructlog import create_logger
+
+log = create_logger(Config().get('logging'))
 
 class Helpers():
     @staticmethod
@@ -23,8 +27,13 @@ class Helpers():
             return 'http://%s' % url
 
     @staticmethod
-    def get_onos_fabric_service(model_accessor):
+    def get_onos_fabric_service(model_accessor, *args):
         # FIXME do not select by name but follow ServiceDependency
-        fabric_service = model_accessor.Service.objects.get(name="fabric")
-        onos_fabric_service = fabric_service.provider_services[0].leaf_model
+        fabric = None
+        if(len(args) == 1):
+            fabric = model_accessor.Service.objects.get(id=args[0].fabric_id)            
+        else:
+            fabric = model_accessor.Service.objects.get(name="fabric")
+        log.info("Fabric Service: %s" % fabric.name)
+        onos_fabric_service = fabric.provider_services[0].leaf_model
         return onos_fabric_service

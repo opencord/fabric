@@ -1,4 +1,3 @@
-
 # Copyright 2017-present Open Networking Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,50 +70,67 @@ class SyncFabricPort(SyncStep):
 
         log.debug("Port %s/%s data" % (model.switch.ofId, model.portId), data=data)
 
-        onos = Helpers.get_onos_fabric_service(self.model_accessor)
-
-        url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
-
-        r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
-
-        if r.status_code != 200:
-            log.error(r.text)
-            raise Exception("Failed to add port  %s/%s into ONOS" % (model.switch.ofId, model.portId))
+        onos = None
+        if(model.switch.fabric != None):
+            onos = Helpers.get_onos_fabric_service(self.model_accessor, model.switch)
         else:
-            try:
-                log.info("Port %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
-            except Exception:
-                log.info("Port %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
+            fabric_service = self.model_accessor.FabricService.objects.all()
+            if(len(fabric_service) == 1):
+                onos = Helpers.get_onos_fabric_service(self.model_accessor)
+            else:
+                log.error("No appropriate onos_fabric is found for switch-port: %s" % model.portId)
+                raise Exception("Switch Port: %s synchronization is refused." % model.portId)
+        
+        if(onos != None):
+            url = 'http://%s:%s/onos/v1/network/configuration/' % (onos.rest_hostname, onos.rest_port)
+
+            r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+
+            if r.status_code != 200:
+                log.error(r.text)
+                raise Exception("Failed to add port  %s/%s into ONOS" % (model.switch.ofId, model.portId))
+            else:
+                try:
+                    log.info("Port %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
+                except Exception:
+                    log.info("Port %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
 
         # Now set the port's administrative state.
         # TODO(smbaker): See if netcfg allows us to specify the portstate instead of using a separate REST call
 
-        url = 'http://%s:%s/onos/v1/devices/%s/portstate/%s' % (onos.rest_hostname,
+            url = 'http://%s:%s/onos/v1/devices/%s/portstate/%s' % (onos.rest_hostname,
                                                                 onos.rest_port,
                                                                 model.switch.ofId,
                                                                 model.portId)
-        data = {"enabled": True if model.admin_state == "enabled" else False}
-        log.debug("Sending portstate %s to %s/%s" % (data, model.switch.ofId, model.portId))
-        r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+            data = {"enabled": True if model.admin_state == "enabled" else False}
+            log.debug("Sending portstate %s to %s/%s" % (data, model.switch.ofId, model.portId))
+            r = requests.post(url, json=data, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
 
-        if r.status_code != 200:
-            log.error(r.text)
-            raise Exception("Failed to set portstate  %s/%s into ONOS" % (model.switch.ofId, model.portId))
+            if r.status_code != 200:
+                log.error(r.text)
+                raise Exception("Failed to set portstate  %s/%s into ONOS" % (model.switch.ofId, model.portId))
+            else:
+                try:
+                    log.info("Portstate %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
+                except Exception:
+                    log.info("Portstate %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
+
+    def delete_netcfg_item(self, partial_url, switch):
+        onos = None
+        if(switch.fabric != None):
+            onos = Helpers.get_onos_fabric_service(self.model_accessor, switch)
         else:
-            try:
-                log.info("Portstate %s/%s response" % (model.switch.ofId, model.portId), json=r.json())
-            except Exception:
-                log.info("Portstate %s/%s response" % (model.switch.ofId, model.portId), text=r.text)
+            fabric_service = self.model_accessor.FabricService.objects.all()
+            if(len(fabric_service) == 1):
+                onos = Helpers.get_onos_fabric_service(self.model_accessor)
+        if(onos != None):
+            url = 'http://%s:%s/onos/v1/network/configuration/ports/%s' % (onos.rest_hostname, onos.rest_port, partial_url)
 
-    def delete_netcfg_item(self, partial_url):
-        onos = Helpers.get_onos_fabric_service(self.model_accessor)
-        url = 'http://%s:%s/onos/v1/network/configuration/ports/%s' % (onos.rest_hostname, onos.rest_port, partial_url)
+            r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
 
-        r = requests.delete(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
-
-        if r.status_code != 204:
-            log.error(r.text)
-            raise Exception("Failed to %s port %s from ONOS" % url)
+            if r.status_code != 204:
+                log.error(r.text)
+                raise Exception("Failed to %s port %s from ONOS" % url)
 
     def delete_record(self, model):
         if model.leaf_model_name == "PortInterface":
@@ -144,4 +160,4 @@ class SyncFabricPort(SyncStep):
         key = urllib.quote(key, safe='')
 
         # deleting the port
-        self.delete_netcfg_item(key)
+        self.delete_netcfg_item(key, model.switch)
