@@ -21,6 +21,7 @@ The fabric service is composed of the following models:
     - `routerMac`. MAC address of the fabric switch used for all interfaces.
     - `isEdgeRouter`. True if the switch is a leaf, false if it is a spine.
     - `managementAddress`. Address where this switch can be managed.
+    - `fabric`. The Fabric Service which owns this switch.
 - `SwitchPort`. Represents a port on a fabric `Switch`.
     - `switch`. Relation to `Switch` that owns this port.
     - `portId`. Unique OpenFlow port ID.

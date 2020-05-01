@@ -33,46 +33,46 @@ class ONOSDevicePullStep(PullStep):
     def __init__(self, model_accessor):
         super(ONOSDevicePullStep, self).__init__(model_accessor=model_accessor)
 
-    def get_onos_fabric_service(self):
-        # FIXME do not select by name but follow ServiceDependency
-        fabric_service = self.model_accessor.Service.objects.get(name="fabric")
+    def get_onos_fabric_service(self, fabric):
+        fabric_service = self.model_accessor.Service.objects.get(id=fabric.id)
         onos_fabric_service = fabric_service.provider_services[0].leaf_model
         return onos_fabric_service
 
     def pull_records(self):
         log.debug("[ONOS device pull step] pulling devices from ONOS")
 
-        onos = self.get_onos_fabric_service()
+        fabric_service=self.model_accessor.FabricService.objects.all()
+        for fabric in fabric_service:
+            onos = self.get_onos_fabric_service(fabric)
+            log.info("onos_fabric: %s" % onos)
 
-        url = 'http://%s:%s/onos/v1/devices/' % (onos.rest_hostname, onos.rest_port)
+            url = 'http://%s:%s/onos/v1/devices/' % (onos.rest_hostname, onos.rest_port)
+            r = requests.get(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+            if r.status_code != 200:
+                log.error(r.text)
+                raise Exception("Failed to get onos devices")
+            else:
+                try:
+                    log.info("Get devices response", json=r.json())
+                except Exception:
+                    log.info("Get devices exception response", text=r.text)
 
-        r = requests.get(url, auth=HTTPBasicAuth(onos.rest_username, onos.rest_password))
+            for device in r.json()["devices"]:
+                if device["type"] != "SWITCH":
+                    continue
 
-        if r.status_code != 200:
-            log.error(r.text)
-            raise Exception("Failed to get onos devices")
-        else:
-            try:
-                log.info("Get devices response", json=r.json())
-            except Exception:
-                log.info("Get devices exception response", text=r.text)
+                xos_devices = self.model_accessor.Switch.objects.filter(ofId = device["id"])
+                if not xos_devices:
+                    continue
 
-        for device in r.json()["devices"]:
-            if device["type"] != "SWITCH":
-                continue
+                xos_device = xos_devices[0]
+                changed = False
 
-            xos_devices = self.model_accessor.Switch.objects.filter(ofId = device["id"])
-            if not xos_devices:
-                continue
+                managementAddress = device.get("annotations", {}).get("managementAddress")
+                if (xos_device.managementAddress != managementAddress):
+                    log.info("Setting managementAddress on switch %s to %s" % (xos_device.id, managementAddress))
+                    xos_device.managementAddress = managementAddress
+                    changed = True
 
-            xos_device = xos_devices[0]
-            changed = False
-
-            managementAddress = device.get("annotations", {}).get("managementAddress")
-            if (xos_device.managementAddress != managementAddress):
-                log.info("Setting managementAddress on switch %s to %s" % (xos_device.id, managementAddress))
-                xos_device.managementAddress = managementAddress
-                changed = True
-
-            if changed:
-                xos_device.save_changed_fields()
+                if changed:
+                    xos_device.save_changed_fields()
