@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9dfd06d9_bbfda337",
+        "filename": "xos/synchronizer/steps/helpers.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-05-01T01:45:38Z",
+      "side": 1,
+      "message": "isn\u0027t this fixed in this patch?",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 66
+      },
+      "revId": "fbab552c3f3e6c89bacbfb3987f67fe1869d2897",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc35dcde_2918babb",
+        "filename": "xos/synchronizer/steps/helpers.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-05-01T01:45:38Z",
+      "side": 1,
+      "message": "get-onos-fabric-service?",
+      "range": {
+        "startLine": 37,
+        "startChar": 18,
+        "endLine": 37,
+        "endChar": 36
+      },
+      "revId": "fbab552c3f3e6c89bacbfb3987f67fe1869d2897",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8822dbd1_31585083",
+        "filename": "xos/synchronizer/steps/helpers.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-05-01T01:45:38Z",
+      "side": 1,
+      "message": "I think not having an ONOS is a configuration error, so I would raise an exception as having a fabric service without an ONOS doesn\u0027t really make sense",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 17
+      },
+      "revId": "fbab552c3f3e6c89bacbfb3987f67fe1869d2897",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e8e591ce_9d4d64c1",
+        "filename": "xos/synchronizer/steps/sync_fabric_port.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-05-01T01:45:38Z",
+      "side": 1,
+      "message": "wouldn\u0027t be better to throw an exception instead of None if the service is not found? In that way we don\u0027t have to manage that case in every sync-step",
+      "range": {
+        "startLine": 73,
+        "startChar": 8,
+        "endLine": 73,
+        "endChar": 25
+      },
+      "revId": "fbab552c3f3e6c89bacbfb3987f67fe1869d2897",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef75c5d4_1bc9ccaa",
+        "filename": "xos/synchronizer/steps/sync_fabric_port.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-05-01T01:45:38Z",
+      "side": 1,
+      "message": "what happens if there is no ONOS?",
+      "range": {
+        "startLine": 107,
+        "startChar": 8,
+        "endLine": 107,
+        "endChar": 25
+      },
+      "revId": "fbab552c3f3e6c89bacbfb3987f67fe1869d2897",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
