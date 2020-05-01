@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adfe1243_8dc84834",
+        "filename": "VERSION",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-05-01T00:42:01Z",
+      "side": 1,
+      "message": "IS 3.0.3 the correct version number?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 5
+      },
+      "revId": "b3bd41f1a12ae17d1b9290cafe3b555b1b64eb84",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "715c8d02_a03f52e4",
+        "filename": "xos/synchronizer/steps/sync_fabric_port.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-05-01T00:42:01Z",
+      "side": 1,
+      "message": "minor nit, indent the comment?",
+      "range": {
+        "startLine": 85,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 50
+      },
+      "revId": "b3bd41f1a12ae17d1b9290cafe3b555b1b64eb84",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
