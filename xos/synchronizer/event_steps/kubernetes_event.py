@@ -1,4 +1,3 @@
-
 # Copyright 2017-present Open Networking Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,15 +32,40 @@ class KubernetesPodDetailsEventStep(EventStep):
         super(KubernetesPodDetailsEventStep, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def get_fabric_onos(service):
-        service = Service.objects.get(id=service.id)
+    def get_fabric_onos(fabric):
+        fabric_service = Service.objects.get(id=fabric.id)
         # get the onos_fabric service
-        fabric_onos = [s.leaf_model for s in service.provider_services if "onos" in s.name.lower()]
+        onos_fabric = fabric_service.provider_services[0].leaf_model
 
-        if len(fabric_onos) == 0:
+        if not onos_fabric:
             raise Exception('Cannot find ONOS service in provider_services of Fabric')
 
-        return fabric_onos[0]
+        return onos_fabric
+
+    @staticmethod
+    def dirty_switch(fabric_switch=None):
+        switches = None
+        if fabric_switch:
+            switches = fabric_switch
+        else:
+            switches = Switch.objects.all()
+
+        for switch in switches:
+            log.info("Dirtying Switch", switch=switch)
+            switch.backend_code = 0
+            switch.backend_status = "resynchronize due to kubernetes event"
+            switch.save(update_fields=["updated", "backend_code", "backend_status"], always_update_timestamp=True)
+
+            for port in switch.ports.all():
+                log.info("Dirtying SwitchPort", port=port)
+                port.backend_code = 0
+                port.backend_status = "resynchronize due to kubernetes event"
+                port.save(
+                    update_fields=[
+                        "updated",
+                        "backend_code",
+                        "backend_status"],
+                    always_update_timestamp=True)
 
     def process_event(self, event):
         value = json.loads(event.value)
@@ -61,19 +85,8 @@ class KubernetesPodDetailsEventStep(EventStep):
             if (onos_service.name.lower() != xos_service.lower()):
                 continue
 
-            for switch in Switch.objects.all():
-                log.info("Dirtying Switch", switch=switch)
-                switch.backend_code = 0
-                switch.backend_status = "resynchronize due to kubernetes event"
-                switch.save(update_fields=["updated", "backend_code", "backend_status"], always_update_timestamp=True)
-
-                for port in switch.ports.all():
-                    log.info("Dirtying SwitchPort", port=port)
-                    port.backend_code = 0
-                    port.backend_status = "resynchronize due to kubernetes event"
-                    port.save(
-                        update_fields=[
-                            "updated",
-                            "backend_code",
-                            "backend_status"],
-                        always_update_timestamp=True)
+            fabric_switch = fabric_service.switch.all()
+            if(len(fabric_switch) != 0):
+                KubernetesPodDetailsEventStep.dirty_switch(fabric_switch)
+            else:
+                KubernetesPodDetailsEventStep.dirty_switch()
