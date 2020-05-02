@@ -1,4 +1,3 @@
-
 # Copyright 2017-present Open Networking Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,15 +32,15 @@ class KubernetesPodDetailsEventStep(EventStep):
         super(KubernetesPodDetailsEventStep, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def get_fabric_onos(service):
-        service = Service.objects.get(id=service.id)
+    def get_fabric_onos(fabric):
+        fabric_service = Service.objects.get(id=fabric.id)
         # get the onos_fabric service
-        fabric_onos = [s.leaf_model for s in service.provider_services if "onos" in s.name.lower()]
+        onos_fabric = fabric_service.provider_services[0].leaf_model
 
-        if len(fabric_onos) == 0:
+        if not onos_fabric:
             raise Exception('Cannot find ONOS service in provider_services of Fabric')
 
-        return fabric_onos[0]
+        return onos_fabric
 
     def process_event(self, event):
         value = json.loads(event.value)
