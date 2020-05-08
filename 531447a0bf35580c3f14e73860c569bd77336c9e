@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1f81baf5_02ee51db",
+        "filename": "xos/synchronizer/event_steps/kubernetes_event.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-05-08T17:44:02Z",
+      "side": 1,
+      "message": "This is checking that the service name matches the label in the K8s event, but is not verifying that an \"ONOS\" service is found.\n\nYou still want to check to make sure the `s.name.lower() \u003d\u003d xos_service.lower()` ( \u003d\u003d comparison is fine for that, not substring). However, you also want to check than an ONOS service is found (`\"onos\" in s.name.lower()`).",
+      "range": {
+        "startLine": 38,
+        "startChar": 23,
+        "endLine": 38,
+        "endChar": 111
+      },
+      "revId": "531447a0bf35580c3f14e73860c569bd77336c9e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6f299a8e_a8f685ee",
+        "filename": "xos/synchronizer/event_steps/kubernetes_event.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-05-08T17:44:02Z",
+      "side": 1,
+      "message": "suggest renaming this argument `fabric_switches`, since it\u0027s a list.",
+      "range": {
+        "startLine": 46,
+        "startChar": 21,
+        "endLine": 46,
+        "endChar": 34
+      },
+      "revId": "531447a0bf35580c3f14e73860c569bd77336c9e",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
