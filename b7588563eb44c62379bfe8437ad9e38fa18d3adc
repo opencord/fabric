@@ -22,6 +22,30 @@
       "revId": "b7588563eb44c62379bfe8437ad9e38fa18d3adc",
       "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8e907092_1625c36b",
+        "filename": "xos/synchronizer/event_steps/kubernetes_event.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1000016
+      },
+      "writtenOn": "2020-05-11T16:21:45Z",
+      "side": 1,
+      "message": "`Switch.fabric` is not a required field, and therefore `fabric_service.switch.all()` could be empty even though there are switches. Himanshu catches this case by dirtying all switches.\n\nHimanshu, another alternative would be do implement the following psuedocode and I think it might be clearer:\n\n# Dirty the switches that are associated with a fabric\nfor fabric_service in FabricService.objects.all():\n    ...\n    dirty_switch(fabric_service.switch.all())\n# Dirty the switches that are not associated with a fabric\nunassociated_switches \u003d [switch for switch in Switch.objects.all() if switch.fabric_id \u003d\u003d 0]\ndirty_switch(unassociated_switches",
+      "parentUuid": "f508cc21_7bfafe6d",
+      "range": {
+        "startLine": 89,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 60
+      },
+      "revId": "b7588563eb44c62379bfe8437ad9e38fa18d3adc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
     }
   ]
 }
