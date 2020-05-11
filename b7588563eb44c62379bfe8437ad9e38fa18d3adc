@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f508cc21_7bfafe6d",
+        "filename": "xos/synchronizer/event_steps/kubernetes_event.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1000007
+      },
+      "writtenOn": "2020-05-11T15:14:03Z",
+      "side": 1,
+      "message": "why this difference? can\u0027t we always pass \"fabric_service.switch.all()\" to the dirty_switch method?\n\nthe differentiation confused my a bit but I believe that removing this check we\u0027ll have the same effect and a more straight forward code",
+      "range": {
+        "startLine": 89,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 60
+      },
+      "revId": "b7588563eb44c62379bfe8437ad9e38fa18d3adc",
+      "serverId": "2a2bfe1b-c5c2-48ed-9ac8-16438ab24388",
+      "unresolved": false
+    }
+  ]
+}
