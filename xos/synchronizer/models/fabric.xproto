@@ -45,8 +45,7 @@ message Switch(XOSBase) {
         max_length = 1024];
     optional manytoone fabric->FabricService:switch = 10:1013 [
         help_text = "The Fabric Service which owns this switch",
-        db_index = True,
-	tosca_key=True];
+        db_index = True];
 }
 
 message SwitchPort(XOSBase) {
